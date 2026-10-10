@@ -59,6 +59,9 @@ import io.github.ifa.glancewidget.model.wrapper.BatteryDataWrapper
 import io.github.ifa.glancewidget.ui.component.AnimatedCounter
 import io.github.ifa.glancewidget.utils.Constants.MAH_UNIT
 
+/** Negative / zero means "no reading from the system" - show a dash instead of "-1 mAh". */
+private fun Int.asMah(): String = if (this > 0) "$this $MAH_UNIT" else "--"
+
 data class HealthItemData(
     @StringRes val label: Int,
     val value: String,
@@ -104,8 +107,8 @@ fun BatteryExtraInformation(
         HealthItemData(R.string.technology, myDevice.technology, Icons.Rounded.Build),
         HealthItemData(R.string.health, stringResource(id = batteryHealth.type), Icons.Rounded.Favorite),
         HealthItemData(R.string.design_capacity, "${extraBatteryInfo.capacity} $MAH_UNIT", Icons.Rounded.BatterySaver),
-        HealthItemData(R.string.full_charge_capacity, "${extraBatteryInfo.fullChargeCapacity} $MAH_UNIT", Icons.Rounded.BatteryFull),
-        HealthItemData(R.string.charge_counter, "${extraBatteryInfo.chargeCounter} $MAH_UNIT", Icons.Rounded.Refresh),
+        HealthItemData(R.string.full_charge_capacity, extraBatteryInfo.fullChargeCapacity.asMah(), Icons.Rounded.BatteryFull),
+        HealthItemData(R.string.charge_counter, extraBatteryInfo.chargeCounter.asMah(), Icons.Rounded.Refresh),
         HealthItemData(R.string.cycle_count, myDevice.cycleCount.toString(), Icons.Rounded.ChangeCircle)
     )
 

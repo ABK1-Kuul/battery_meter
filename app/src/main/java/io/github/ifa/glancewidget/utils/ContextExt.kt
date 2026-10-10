@@ -33,6 +33,7 @@ import io.github.ifa.glancewidget.model.DeviceType
 import io.github.ifa.glancewidget.model.ExtraBatteryInfo
 import io.github.ifa.glancewidget.utils.Constants.MAX_DESIGN_CAPACITY
 import io.github.ifa.glancewidget.utils.Constants.MIN_DESIGN_CAPACITY
+import io.github.ifa.glancewidget.utils.Constants.MIN_PERCENT_FOR_FULL_CAPACITY_ESTIMATE
 import androidx.core.graphics.createBitmap
 import io.github.ifa.glancewidget.service.BatteryStatusService
 
@@ -58,40 +59,65 @@ fun Context.safeGetPairedDevices(): List<BonedDevice> {
     return runCatching { getPairedDevices() }.getOrDefault(emptyList())
 }
 
-fun Context.getExtraBatteryInformation(): ExtraBatteryInfo {
+/**
+ * Reads the live battery counters from [BatteryManager].
+ *
+ * @param previousFullChargeCapacity last stored full-charge estimate (mAh) or <= 0 if none. The
+ * estimate is derived from an integer battery percentage, so it is only trustworthy at higher
+ * charge levels. At low levels the previous value is kept and new estimates are smoothed.
+ */
+fun Context.getExtraBatteryInformation(previousFullChargeCapacity: Int = -1): ExtraBatteryInfo {
     val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-    val propertyChargeCounter =
+    val rawChargeCounter =
         batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
-    // this value is current charge counter in micro amp hours. But some device return in millis
-    val chargeCounter = if (propertyChargeCounter / 1000 < MAX_DESIGN_CAPACITY / 1000) {
-        propertyChargeCounter
-    } else {
-        propertyChargeCounter / 1000
+    // Int.MIN_VALUE (unsupported) and 0 (not ready) are not real readings.
+    // The value is in micro amp hours, but some devices already report milli amp hours.
+    val chargeCounter = when {
+        rawChargeCounter <= 0 -> -1
+        rawChargeCounter / 1000 < MAX_DESIGN_CAPACITY / 1000 -> rawChargeCounter
+        else -> rawChargeCounter / 1000
     }
-    val capacity = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+    val capacityPercent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
 
-    val fullChargeCapacity = chargeCounter.toFloat() / capacity.toFloat() * 100f
-    // micro amp to millis amp
-    val chargeCurrent = batteryManager.getIntProperty(
-        BatteryManager.BATTERY_PROPERTY_CURRENT_NOW
-    ) / 1_000
-    val designCapacity = getDesignCapacity()
+    // micro amp to milli amp. Int.MIN_VALUE means unsupported.
+    val rawCurrent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+    val chargeCurrent = if (rawCurrent == Int.MIN_VALUE) 0 else rawCurrent / 1_000
+
+    // Reflection on a hidden class can fail: that must not take the other readings down with it.
+    val designCapacity = runCatching { getDesignCapacity() }.getOrNull()
+
+    val estimate = if (chargeCounter > 0 && capacityPercent in 1..100) {
+        chargeCounter * 100f / capacityPercent
+    } else {
+        -1f
+    }
+    val isEstimateReliable = capacityPercent >= MIN_PERCENT_FOR_FULL_CAPACITY_ESTIMATE
+    val clampTo = designCapacity ?: MAX_DESIGN_CAPACITY
+    val fullChargeCapacity = when {
+        estimate > 0 && previousFullChargeCapacity > 0 && isEstimateReliable ->
+            (previousFullChargeCapacity * 0.9f + estimate * 0.1f).roundToNearest(10, clampTo)
+
+        estimate > 0 && previousFullChargeCapacity <= 0 -> estimate.roundToNearest(10, clampTo)
+        previousFullChargeCapacity > 0 -> previousFullChargeCapacity
+        else -> -1
+    }
 
     return ExtraBatteryInfo(
-        capacity = designCapacity,
-        fullChargeCapacity = fullChargeCapacity.roundToNearestHundred(designCapacity),
+        capacity = designCapacity ?: MIN_DESIGN_CAPACITY,
+        fullChargeCapacity = fullChargeCapacity,
         chargeCounter = chargeCounter,
         chargeCurrent = chargeCurrent
     )
 }
 
-fun Float.roundToNearestHundred(capacity: Int): Int {
-    val rounded = (this.toInt() + 50) / 100 * 100
-    return minOf(rounded, capacity)
+fun Float.roundToNearest(step: Int, max: Int): Int {
+    val rounded = ((this + step / 2f) / step).toInt() * step
+    return minOf(rounded, max)
 }
 
+/** Returns the design capacity in mAh, or null when it can not be read or looks implausible. */
 @SuppressLint("PrivateApi")
-private fun Context.getDesignCapacity(): Int {
+private fun Context.getDesignCapacity(): Int? {
     val powerProfileClass = "com.android.internal.os.PowerProfile"
     val mPowerProfile = Class.forName(powerProfileClass).getConstructor(
         Context::class.java
@@ -100,11 +126,7 @@ private fun Context.getDesignCapacity(): Int {
         "getBatteryCapacity"
     ).invoke(mPowerProfile) as Double).toInt()
 
-    return when {
-        designCapacity == 0 || designCapacity < MIN_DESIGN_CAPACITY
-                || designCapacity > MAX_DESIGN_CAPACITY -> MIN_DESIGN_CAPACITY
-        else -> designCapacity
-    }
+    return designCapacity.takeIf { it in MIN_DESIGN_CAPACITY..MAX_DESIGN_CAPACITY }
 }
 
 fun Context.setLocale(localeCode: String) {

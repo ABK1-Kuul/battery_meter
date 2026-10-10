@@ -202,10 +202,18 @@ fun BatteryOverall(
             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
 
+            // History is stored in Celsius; show it in the same unit as the headline value.
+            val temperatureHistory = remember(chartTrackingData.temperatures, temperatureUnit) {
+                if (temperatureUnit == TemperatureUnit.FAHRENHEIT) {
+                    chartTrackingData.temperatures.map { it * 1.8f + 32f }
+                } else {
+                    chartTrackingData.temperatures
+                }
+            }
             TemperatureMonitor(
                 modifier = Modifier.weight(1f),
                 temperature = temperature,
-                temperatureTracking = chartTrackingData.temperatures
+                temperatureTracking = temperatureHistory
             )
             VoltageMonitor(
                 modifier = Modifier.weight(1f),
@@ -279,6 +287,9 @@ private fun TemperatureMonitor(
     modifier: Modifier, temperature: MyDevice.Temperature, temperatureTracking: List<Float>
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
+    val temperatureRange = remember(temperatureTracking, temperature) {
+        temperatureTracking.ifEmpty { listOf(temperature.temperature) }.paddedRange(minSpan = 2.0)
+    }
     LaunchedEffect(temperatureTracking) {
         withContext(Dispatchers.Default) {
             modelProducer.runTransaction {
@@ -295,8 +306,8 @@ private fun TemperatureMonitor(
         LineChart(
             modelProducer = modelProducer,
             modifier = Modifier.padding(top = 32.dp),
-            minY = 25.0,
-            maxY = 50.0
+            minY = temperatureRange.first,
+            maxY = temperatureRange.second
         )
         Text(
             text = temperature.formatTemperature(),
@@ -326,6 +337,9 @@ private fun VoltageMonitor(
     voltageTracking: List<Float>,
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
+    val voltageRange = remember(voltageTracking, voltage) {
+        voltageTracking.ifEmpty { listOf(voltage) }.paddedRange(minSpan = 0.2)
+    }
     LaunchedEffect(voltageTracking) {
         withContext(Dispatchers.Default) {
             modelProducer.runTransaction {
@@ -342,8 +356,8 @@ private fun VoltageMonitor(
         LineChart(
             modelProducer = modelProducer,
             modifier = Modifier.padding(top = 32.dp),
-            minY = 1.0,
-            maxY = 5.0
+            minY = voltageRange.first,
+            maxY = voltageRange.second
         )
         Text(
             text = String.format("%.2f", voltage) + " V",
@@ -364,6 +378,15 @@ private fun VoltageMonitor(
     }
 }
 
+/** Min/max of the data with 20% headroom on each side and at least [minSpan] of total range. */
+private fun List<Float>.paddedRange(minSpan: Double): Pair<Double, Double> {
+    val lo = minOrNull()?.toDouble() ?: 0.0
+    val hi = maxOrNull()?.toDouble() ?: 1.0
+    val span = (hi - lo).coerceAtLeast(minSpan)
+    val mid = (hi + lo) / 2.0
+    return (mid - span * 0.6) to (mid + span * 0.6)
+}
+
 @Composable
 private fun LineChart(
     modelProducer: CartesianChartModelProducer, modifier: Modifier, minY: Double, maxY: Double
@@ -376,7 +399,7 @@ private fun LineChart(
                 LineCartesianLayer.LineProvider.series(
                     LineCartesianLayer.rememberLine(
                     remember(lineColor) { LineCartesianLayer.LineFill.single(fill(lineColor)) })),
-                rangeProvider = remember {
+                rangeProvider = remember(minY, maxY) {
                     CartesianLayerRangeProvider.fixed(minY = minY, maxY = maxY)
                 },
                 pointSpacing = 1.dp

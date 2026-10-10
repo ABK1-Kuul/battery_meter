@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.datastore.preferences.core.edit
 import io.github.ifa.glancewidget.data.batteryWidgetStore
 import io.github.ifa.glancewidget.domain.BatteryStateRepository
 import io.github.ifa.glancewidget.glance.battery.BatteryWidget
@@ -17,14 +18,16 @@ import io.github.ifa.glancewidget.model.ExtraBatteryInfo
 import io.github.ifa.glancewidget.model.MyDevice
 import io.github.ifa.glancewidget.model.WidgetSetting
 import io.github.ifa.glancewidget.utils.Constants.DEFAULT_MAX_COLLECT_CURRENT
-import io.github.ifa.glancewidget.utils.chunked
 import io.github.ifa.glancewidget.utils.getExtraBatteryInformation
-import io.github.ifa.glancewidget.utils.getObject
+import io.github.ifa.glancewidget.utils.fromJson
 import io.github.ifa.glancewidget.utils.setBoolean
 import io.github.ifa.glancewidget.utils.setObject
+import io.github.ifa.glancewidget.utils.toJson
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.map
 
 class DefaultBatteryStateRepository(
@@ -46,17 +49,24 @@ class DefaultBatteryStateRepository(
         return batteryDataStore.getBatteryData()
     }
 
-    override fun extraBatteryFlow(): Flow<ExtraBatteryInfo> {
-        val extraBattery = try {
+    override fun extraBatteryFlow(): Flow<ExtraBatteryInfo> = flow {
+        val default = try {
             context.getExtraBatteryInformation()
         } catch (e: Exception) {
             Log.e(TAG, "extraBatteryFlow: ${e.message}")
             ExtraBatteryInfo()
         }
-        return batteryDataStore.getExtraBatteryInformation(extraBattery)
-            .chunked(2)
-            .conflate()
-            .map { it.average() }
+        // Window lives inside flow{} so every collector gets its own, fresh window.
+        val recentCurrents = ArrayDeque<Int>()
+        emitAll(
+            batteryDataStore.getExtraBatteryInformation(default).conflate().map { info ->
+                recentCurrents.addLast(info.chargeCurrent)
+                if (recentCurrents.size > CURRENT_SMOOTHING_WINDOW) recentCurrents.removeFirst()
+                // Only the noisy instantaneous current is smoothed. Charge counter and
+                // capacities are passed through untouched so they match the system value.
+                info.copy(chargeCurrent = recentCurrents.average().toInt())
+            }
+        )
     }
 
     override suspend fun extraBattery(): ExtraBatteryInfo {
@@ -82,8 +92,9 @@ class DefaultBatteryStateRepository(
     }
 
     override suspend fun saveExtraBatteryInformation() {
+        val previousFull = batteryDataStore.getExtraBatteryData(ExtraBatteryInfo()).fullChargeCapacity
         val extraBatteryInfo = try {
-            context.getExtraBatteryInformation()
+            context.getExtraBatteryInformation(previousFull)
         } catch (e: Exception) {
             Log.e(TAG, "saveExtraBatteryInformation: ${e.message}")
             ExtraBatteryInfo()
@@ -93,6 +104,14 @@ class DefaultBatteryStateRepository(
 
     override suspend fun setBatteryData(batteryData: BatteryData) {
         context.batteryWidgetStore.setObject(BATTERY_PREFERENCES, batteryData)
+    }
+
+    /** Read-modify-write in ONE DataStore transaction so concurrent writers can't clobber each other. */
+    override suspend fun updateBatteryData(transform: (BatteryData) -> BatteryData) {
+        context.batteryWidgetStore.edit { prefs ->
+            val current = fromJson<BatteryData>(prefs[BATTERY_PREFERENCES]) ?: BatteryData.initial()
+            prefs[BATTERY_PREFERENCES] = toJson(transform(current))
+        }
     }
 
     override suspend fun changePairedDevicesVisibility(showPairedDevices: Boolean) {
@@ -152,32 +171,37 @@ class DefaultBatteryStateRepository(
     }
 
     override suspend fun setMyDevice(myDevice: MyDevice) {
-        val data = context.batteryWidgetStore.getObject<BatteryData>(BATTERY_PREFERENCES)
-            ?: BatteryData.initial()
-        val newData = data.copy(myDevice = myDevice)
-        context.batteryWidgetStore.setObject(BATTERY_PREFERENCES, newData)
+        // An empty/placeholder Intent must never overwrite a real reading.
+        if (!myDevice.hasValidReading) return
+        updateBatteryData { it.copy(myDevice = myDevice) }
     }
 
     override suspend fun saveHistoryForChart(temperature: Float, voltage: Float) {
-        val chartHistory = batteryDataStore.getChartRecord()
-        val temperatures = chartHistory.temperatures.toMutableList()
-        val voltages = chartHistory.voltages.toMutableList()
-        var shouldSave = false
-        if (temperature != temperatures.lastOrNull()) {
-            shouldSave = true
-            temperatures.add(temperature)
+        // Placeholder values (-0.1 C / -0.001 V) from an empty Intent are not measurements.
+        if (voltage <= 0f || temperature <= -50f) return
+        context.batteryWidgetStore.edit { prefs ->
+            val history = fromJson<ChartRecord>(prefs[BatteryDataStore.CHART_RECORD_PREFERENCES])
+                ?: ChartRecord()
+            val temperatures = history.temperatures.toMutableList()
+            val voltages = history.voltages.toMutableList()
+            var changed = false
+            if (temperature != temperatures.lastOrNull()) {
+                temperatures.add(temperature)
+                changed = true
+            }
+            if (voltage != voltages.lastOrNull()) {
+                voltages.add(voltage)
+                changed = true
+            }
+            if (changed) {
+                prefs[BatteryDataStore.CHART_RECORD_PREFERENCES] = toJson(
+                    ChartRecord(
+                        temperatures = temperatures.takeLast(MAX_HISTORY_POINTS),
+                        voltages = voltages.takeLast(MAX_HISTORY_POINTS),
+                    )
+                )
+            }
         }
-        if (voltage != voltages.lastOrNull()) {
-            shouldSave = true
-            voltages.add(voltage)
-        }
-        if (!shouldSave) return
-        batteryDataStore.saveChartRecord(
-            ChartRecord(
-                temperatures = temperatures.takeLast(100),
-                voltages = voltages.takeLast(100),
-            )
-        )
     }
 
     private suspend fun saveWidgetSettings(
@@ -194,17 +218,9 @@ class DefaultBatteryStateRepository(
     }
     companion object {
         const val TAG = "DefaultBatteryStateRepository"
+        private const val CURRENT_SMOOTHING_WINDOW = 3
+        private const val MAX_HISTORY_POINTS = 100
     }
-}
-
-fun List<ExtraBatteryInfo>.average(): ExtraBatteryInfo {
-    return ExtraBatteryInfo(
-        capacity = this.map { it.capacity }.average().toInt(),
-        chargeCounter = this.map { it.chargeCounter }.average().toInt(),
-        fullChargeCapacity = this.map { it.fullChargeCapacity }.average().toInt(),
-        chargingTimeRemaining = this.map { it.chargingTimeRemaining }.average().toLong(),
-        chargeCurrent = this.map { it.chargeCurrent }.average().toInt(),
-    )
 }
 
 fun List<Int>.addUpTo(limit: Int, value: Int): List<Int> {

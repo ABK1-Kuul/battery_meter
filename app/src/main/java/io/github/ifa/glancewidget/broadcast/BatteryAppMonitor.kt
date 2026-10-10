@@ -24,7 +24,8 @@ import io.github.ifa.glancewidget.utils.startBatteryStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -40,6 +41,14 @@ class BatteryAppMonitor : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         goAsyncCoroutine(monitorScope, Dispatchers.IO) {
+            // Events are handled one at a time, in arrival order, so an older broadcast can
+            // never overwrite the result of a newer one.
+            monitorMutex.withLock { handleIntent(context, intent) }
+        }
+    }
+
+    private suspend fun handleIntent(context: Context, intent: Intent) {
+        run {
             val isBatteryDataAction = intent.action in BATTERY_DATA_ACTIONS
             val shouldUpdateWidget = intent.action !in BOOT_ACTIONS
 
@@ -49,31 +58,29 @@ class BatteryAppMonitor : BroadcastReceiver() {
                     batteryStateRepository.setMyDevice(myDevice)
                     val pairedDevices = context.safeGetPairedDevices()
                     if (pairedDevices.isNotEmpty()) {
-                        val currentData = batteryStateRepository.batteryFlow().firstOrNull()
-                        if (currentData != null) {
-                            batteryStateRepository.setBatteryData(
-                                currentData.copy(batteryConnectedDevices = pairedDevices)
-                            )
+                        batteryStateRepository.updateBatteryData {
+                            it.copy(batteryConnectedDevices = pairedDevices)
                         }
+                    }
+                    // Record history here (not only in the UI loop) so it keeps being collected
+                    // while the app is in the background.
+                    if (myDevice.hasValidReading) {
+                        batteryStateRepository.saveHistoryForChart(
+                            myDevice.temperature.temperature, myDevice.voltage
+                        )
                     }
                     notifyBatteryInfo(context = context, overrideDevice = myDevice)
                 }
 
                 Intent.ACTION_POWER_CONNECTED -> {
                     context.startBatteryStatus()
-                    val currentData = batteryStateRepository.batteryFlow().firstOrNull()
-                    if (currentData != null) {
-                        batteryStateRepository.setBatteryData(currentData.setChargingStatus(true))
-                    }
+                    batteryStateRepository.updateBatteryData { it.setChargingStatus(true) }
                     notifyBatteryInfo(context = context, overrideCharging = true)
                 }
 
                 Intent.ACTION_POWER_DISCONNECTED -> {
                     context.startBatteryStatus()
-                    val currentData = batteryStateRepository.batteryFlow().firstOrNull()
-                    if (currentData != null) {
-                        batteryStateRepository.setBatteryData(currentData.setChargingStatus(false))
-                    }
+                    batteryStateRepository.updateBatteryData { it.setChargingStatus(false) }
                     notifyBatteryInfo(context = context, overrideCharging = false)
                 }
 
@@ -102,11 +109,8 @@ class BatteryAppMonitor : BroadcastReceiver() {
                 in BLUETOOTH_STATE_ACTIONS -> {
                     val pairedDevices = context.safeGetPairedDevices()
                     if (pairedDevices.isNotEmpty()) {
-                        val currentData = batteryStateRepository.batteryFlow().firstOrNull()
-                        if (currentData != null) {
-                            batteryStateRepository.setBatteryData(
-                                currentData.copy(batteryConnectedDevices = pairedDevices)
-                            )
+                        batteryStateRepository.updateBatteryData {
+                            it.copy(batteryConnectedDevices = pairedDevices)
                         }
                     }
                 }
@@ -158,6 +162,7 @@ class BatteryAppMonitor : BroadcastReceiver() {
 
     companion object {
         private val monitorScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        private val monitorMutex = Mutex()
 
         private val BATTERY_DATA_ACTIONS = setOf(
             Intent.ACTION_BATTERY_CHANGED,

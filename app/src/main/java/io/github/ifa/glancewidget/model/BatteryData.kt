@@ -6,7 +6,7 @@ import android.os.Build
 import androidx.annotation.StringRes
 import io.github.ifa.glancewidget.R
 import kotlinx.serialization.Serializable
-import kotlin.math.round
+import java.util.Locale
 
 @Serializable
 data class BatteryData(
@@ -57,8 +57,13 @@ data class MyDevice(
             CELSIUS("°C"), FAHRENHEIT("°F")
         }
 
-        fun formatTemperature(): String = "${round(temperature)} ${temperatureUnit.unit}"
+        fun formatTemperature(): String =
+            String.format(Locale.getDefault(), "%.1f %s", temperature, temperatureUnit.unit)
     }
+
+    /** False for placeholder data built from an empty Intent (no scale / voltage extras). */
+    val hasValidReading: Boolean
+        get() = scale > 0 && voltage > 0f
 
     fun getBatteryHealth(extraBatteryInfo: ExtraBatteryInfo): BatteryHealth {
         val lossCapacityInPercent =

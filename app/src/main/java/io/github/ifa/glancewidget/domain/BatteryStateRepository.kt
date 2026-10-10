@@ -22,6 +22,7 @@ interface BatteryStateRepository {
     suspend fun chargeCurrent(): ChargeDisChargeCurrent
     suspend fun saveExtraBatteryInformation()
     suspend fun setBatteryData(batteryData: BatteryData)
+    suspend fun updateBatteryData(transform: (BatteryData) -> BatteryData)
     suspend fun changePairedDevicesVisibility(showPairedDevices: Boolean)
     suspend fun saveChargeCurrent(chargeCurrent: Int)
     suspend fun setMyDevice(myDevice: MyDevice)

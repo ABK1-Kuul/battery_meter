@@ -1,0 +1,545 @@
+diff --git a/app/src/main/java/io/github/ifa/glancewidget/broadcast/BatteryAppMonitor.kt b/app/src/main/java/io/github/ifa/glancewidget/broadcast/BatteryAppMonitor.kt
+index 9b8450d..1a76b8e 100644
+--- a/app/src/main/java/io/github/ifa/glancewidget/broadcast/BatteryAppMonitor.kt
++++ b/app/src/main/java/io/github/ifa/glancewidget/broadcast/BatteryAppMonitor.kt
+@@ -24,7 +24,8 @@ import io.github.ifa.glancewidget.utils.startBatteryStatus
+ import kotlinx.coroutines.CoroutineScope
+ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.SupervisorJob
+-import kotlinx.coroutines.flow.firstOrNull
++import kotlinx.coroutines.sync.Mutex
++import kotlinx.coroutines.sync.withLock
+ import javax.inject.Inject
+ 
+ @AndroidEntryPoint
+@@ -40,6 +41,14 @@ class BatteryAppMonitor : BroadcastReceiver() {
+ 
+     override fun onReceive(context: Context, intent: Intent) {
+         goAsyncCoroutine(monitorScope, Dispatchers.IO) {
++            // Events are handled one at a time, in arrival order, so an older broadcast can
++            // never overwrite the result of a newer one.
++            monitorMutex.withLock { handleIntent(context, intent) }
++        }
++    }
++
++    private suspend fun handleIntent(context: Context, intent: Intent) {
++        run {
+             val isBatteryDataAction = intent.action in BATTERY_DATA_ACTIONS
+             val shouldUpdateWidget = intent.action !in BOOT_ACTIONS
+ 
+@@ -49,31 +58,29 @@ class BatteryAppMonitor : BroadcastReceiver() {
+                     batteryStateRepository.setMyDevice(myDevice)
+                     val pairedDevices = context.safeGetPairedDevices()
+                     if (pairedDevices.isNotEmpty()) {
+-                        val currentData = batteryStateRepository.batteryFlow().firstOrNull()
+-                        if (currentData != null) {
+-                            batteryStateRepository.setBatteryData(
+-                                currentData.copy(batteryConnectedDevices = pairedDevices)
+-                            )
++                        batteryStateRepository.updateBatteryData {
++                            it.copy(batteryConnectedDevices = pairedDevices)
+                         }
+                     }
++                    // Record history here (not only in the UI loop) so it keeps being collected
++                    // while the app is in the background.
++                    if (myDevice.hasValidReading) {
++                        batteryStateRepository.saveHistoryForChart(
++                            myDevice.temperature.temperature, myDevice.voltage
++                        )
++                    }
+                     notifyBatteryInfo(context = context, overrideDevice = myDevice)
+                 }
+ 
+                 Intent.ACTION_POWER_CONNECTED -> {
+                     context.startBatteryStatus()
+-                    val currentData = batteryStateRepository.batteryFlow().firstOrNull()
+-                    if (currentData != null) {
+-                        batteryStateRepository.setBatteryData(currentData.setChargingStatus(true))
+-                    }
++                    batteryStateRepository.updateBatteryData { it.setChargingStatus(true) }
+                     notifyBatteryInfo(context = context, overrideCharging = true)
+                 }
+ 
+                 Intent.ACTION_POWER_DISCONNECTED -> {
+                     context.startBatteryStatus()
+-                    val currentData = batteryStateRepository.batteryFlow().firstOrNull()
+-                    if (currentData != null) {
+-                        batteryStateRepository.setBatteryData(currentData.setChargingStatus(false))
+-                    }
++                    batteryStateRepository.updateBatteryData { it.setChargingStatus(false) }
+                     notifyBatteryInfo(context = context, overrideCharging = false)
+                 }
+ 
+@@ -102,11 +109,8 @@ class BatteryAppMonitor : BroadcastReceiver() {
+                 in BLUETOOTH_STATE_ACTIONS -> {
+                     val pairedDevices = context.safeGetPairedDevices()
+                     if (pairedDevices.isNotEmpty()) {
+-                        val currentData = batteryStateRepository.batteryFlow().firstOrNull()
+-                        if (currentData != null) {
+-                            batteryStateRepository.setBatteryData(
+-                                currentData.copy(batteryConnectedDevices = pairedDevices)
+-                            )
++                        batteryStateRepository.updateBatteryData {
++                            it.copy(batteryConnectedDevices = pairedDevices)
+                         }
+                     }
+                 }
+@@ -158,6 +162,7 @@ class BatteryAppMonitor : BroadcastReceiver() {
+ 
+     companion object {
+         private val monitorScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
++        private val monitorMutex = Mutex()
+ 
+         private val BATTERY_DATA_ACTIONS = setOf(
+             Intent.ACTION_BATTERY_CHANGED,
+diff --git a/app/src/main/java/io/github/ifa/glancewidget/data/battery/DefaultBatteryStateRepository.kt b/app/src/main/java/io/github/ifa/glancewidget/data/battery/DefaultBatteryStateRepository.kt
+index 98f368d..c1fa806 100644
+--- a/app/src/main/java/io/github/ifa/glancewidget/data/battery/DefaultBatteryStateRepository.kt
++++ b/app/src/main/java/io/github/ifa/glancewidget/data/battery/DefaultBatteryStateRepository.kt
+@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
+ import androidx.compose.runtime.collectAsState
+ import androidx.compose.runtime.getValue
+ import androidx.compose.runtime.remember
++import androidx.datastore.preferences.core.edit
+ import io.github.ifa.glancewidget.data.batteryWidgetStore
+ import io.github.ifa.glancewidget.domain.BatteryStateRepository
+ import io.github.ifa.glancewidget.glance.battery.BatteryWidget
+@@ -17,14 +18,16 @@ import io.github.ifa.glancewidget.model.ExtraBatteryInfo
+ import io.github.ifa.glancewidget.model.MyDevice
+ import io.github.ifa.glancewidget.model.WidgetSetting
+ import io.github.ifa.glancewidget.utils.Constants.DEFAULT_MAX_COLLECT_CURRENT
+-import io.github.ifa.glancewidget.utils.chunked
+ import io.github.ifa.glancewidget.utils.getExtraBatteryInformation
+-import io.github.ifa.glancewidget.utils.getObject
++import io.github.ifa.glancewidget.utils.fromJson
+ import io.github.ifa.glancewidget.utils.setBoolean
+ import io.github.ifa.glancewidget.utils.setObject
++import io.github.ifa.glancewidget.utils.toJson
+ import kotlinx.collections.immutable.toPersistentList
+ import kotlinx.coroutines.flow.Flow
+ import kotlinx.coroutines.flow.conflate
++import kotlinx.coroutines.flow.flow
++import kotlinx.coroutines.flow.emitAll
+ import kotlinx.coroutines.flow.map
+ 
+ class DefaultBatteryStateRepository(
+@@ -46,17 +49,24 @@ class DefaultBatteryStateRepository(
+         return batteryDataStore.getBatteryData()
+     }
+ 
+-    override fun extraBatteryFlow(): Flow<ExtraBatteryInfo> {
+-        val extraBattery = try {
++    override fun extraBatteryFlow(): Flow<ExtraBatteryInfo> = flow {
++        val default = try {
+             context.getExtraBatteryInformation()
+         } catch (e: Exception) {
+             Log.e(TAG, "extraBatteryFlow: ${e.message}")
+             ExtraBatteryInfo()
+         }
+-        return batteryDataStore.getExtraBatteryInformation(extraBattery)
+-            .chunked(2)
+-            .conflate()
+-            .map { it.average() }
++        // Window lives inside flow{} so every collector gets its own, fresh window.
++        val recentCurrents = ArrayDeque<Int>()
++        emitAll(
++            batteryDataStore.getExtraBatteryInformation(default).conflate().map { info ->
++                recentCurrents.addLast(info.chargeCurrent)
++                if (recentCurrents.size > CURRENT_SMOOTHING_WINDOW) recentCurrents.removeFirst()
++                // Only the noisy instantaneous current is smoothed. Charge counter and
++                // capacities are passed through untouched so they match the system value.
++                info.copy(chargeCurrent = recentCurrents.average().toInt())
++            }
++        )
+     }
+ 
+     override suspend fun extraBattery(): ExtraBatteryInfo {
+@@ -82,8 +92,9 @@ class DefaultBatteryStateRepository(
+     }
+ 
+     override suspend fun saveExtraBatteryInformation() {
++        val previousFull = batteryDataStore.getExtraBatteryData(ExtraBatteryInfo()).fullChargeCapacity
+         val extraBatteryInfo = try {
+-            context.getExtraBatteryInformation()
++            context.getExtraBatteryInformation(previousFull)
+         } catch (e: Exception) {
+             Log.e(TAG, "saveExtraBatteryInformation: ${e.message}")
+             ExtraBatteryInfo()
+@@ -95,6 +106,14 @@ class DefaultBatteryStateRepository(
+         context.batteryWidgetStore.setObject(BATTERY_PREFERENCES, batteryData)
+     }
+ 
++    /** Read-modify-write in ONE DataStore transaction so concurrent writers can't clobber each other. */
++    override suspend fun updateBatteryData(transform: (BatteryData) -> BatteryData) {
++        context.batteryWidgetStore.edit { prefs ->
++            val current = fromJson<BatteryData>(prefs[BATTERY_PREFERENCES]) ?: BatteryData.initial()
++            prefs[BATTERY_PREFERENCES] = toJson(transform(current))
++        }
++    }
++
+     override suspend fun changePairedDevicesVisibility(showPairedDevices: Boolean) {
+         context.batteryWidgetStore.setBoolean(
+             BatteryWidget.SHOW_PAIRED_DEVICES, showPairedDevices
+@@ -152,32 +171,37 @@ class DefaultBatteryStateRepository(
+     }
+ 
+     override suspend fun setMyDevice(myDevice: MyDevice) {
+-        val data = context.batteryWidgetStore.getObject<BatteryData>(BATTERY_PREFERENCES)
+-            ?: BatteryData.initial()
+-        val newData = data.copy(myDevice = myDevice)
+-        context.batteryWidgetStore.setObject(BATTERY_PREFERENCES, newData)
++        // An empty/placeholder Intent must never overwrite a real reading.
++        if (!myDevice.hasValidReading) return
++        updateBatteryData { it.copy(myDevice = myDevice) }
+     }
+ 
+     override suspend fun saveHistoryForChart(temperature: Float, voltage: Float) {
+-        val chartHistory = batteryDataStore.getChartRecord()
+-        val temperatures = chartHistory.temperatures.toMutableList()
+-        val voltages = chartHistory.voltages.toMutableList()
+-        var shouldSave = false
+-        if (temperature != temperatures.lastOrNull()) {
+-            shouldSave = true
+-            temperatures.add(temperature)
+-        }
+-        if (voltage != voltages.lastOrNull()) {
+-            shouldSave = true
+-            voltages.add(voltage)
++        // Placeholder values (-0.1 C / -0.001 V) from an empty Intent are not measurements.
++        if (voltage <= 0f || temperature <= -50f) return
++        context.batteryWidgetStore.edit { prefs ->
++            val history = fromJson<ChartRecord>(prefs[BatteryDataStore.CHART_RECORD_PREFERENCES])
++                ?: ChartRecord()
++            val temperatures = history.temperatures.toMutableList()
++            val voltages = history.voltages.toMutableList()
++            var changed = false
++            if (temperature != temperatures.lastOrNull()) {
++                temperatures.add(temperature)
++                changed = true
++            }
++            if (voltage != voltages.lastOrNull()) {
++                voltages.add(voltage)
++                changed = true
++            }
++            if (changed) {
++                prefs[BatteryDataStore.CHART_RECORD_PREFERENCES] = toJson(
++                    ChartRecord(
++                        temperatures = temperatures.takeLast(MAX_HISTORY_POINTS),
++                        voltages = voltages.takeLast(MAX_HISTORY_POINTS),
++                    )
++                )
++            }
+         }
+-        if (!shouldSave) return
+-        batteryDataStore.saveChartRecord(
+-            ChartRecord(
+-                temperatures = temperatures.takeLast(100),
+-                voltages = voltages.takeLast(100),
+-            )
+-        )
+     }
+ 
+     private suspend fun saveWidgetSettings(
+@@ -194,19 +218,11 @@ class DefaultBatteryStateRepository(
+     }
+     companion object {
+         const val TAG = "DefaultBatteryStateRepository"
++        private const val CURRENT_SMOOTHING_WINDOW = 3
++        private const val MAX_HISTORY_POINTS = 100
+     }
+ }
+ 
+-fun List<ExtraBatteryInfo>.average(): ExtraBatteryInfo {
+-    return ExtraBatteryInfo(
+-        capacity = this.map { it.capacity }.average().toInt(),
+-        chargeCounter = this.map { it.chargeCounter }.average().toInt(),
+-        fullChargeCapacity = this.map { it.fullChargeCapacity }.average().toInt(),
+-        chargingTimeRemaining = this.map { it.chargingTimeRemaining }.average().toLong(),
+-        chargeCurrent = this.map { it.chargeCurrent }.average().toInt(),
+-    )
+-}
+-
+ fun List<Int>.addUpTo(limit: Int, value: Int): List<Int> {
+     return this.toPersistentList().add(value).takeLast(limit)
+ }
+\ No newline at end of file
+diff --git a/app/src/main/java/io/github/ifa/glancewidget/domain/BatteryStateRepository.kt b/app/src/main/java/io/github/ifa/glancewidget/domain/BatteryStateRepository.kt
+index 7dbd664..a24172f 100644
+--- a/app/src/main/java/io/github/ifa/glancewidget/domain/BatteryStateRepository.kt
++++ b/app/src/main/java/io/github/ifa/glancewidget/domain/BatteryStateRepository.kt
+@@ -22,6 +22,7 @@ interface BatteryStateRepository {
+     suspend fun chargeCurrent(): ChargeDisChargeCurrent
+     suspend fun saveExtraBatteryInformation()
+     suspend fun setBatteryData(batteryData: BatteryData)
++    suspend fun updateBatteryData(transform: (BatteryData) -> BatteryData)
+     suspend fun changePairedDevicesVisibility(showPairedDevices: Boolean)
+     suspend fun saveChargeCurrent(chargeCurrent: Int)
+     suspend fun setMyDevice(myDevice: MyDevice)
+diff --git a/app/src/main/java/io/github/ifa/glancewidget/features/battery/component/BatteryOverall.kt b/app/src/main/java/io/github/ifa/glancewidget/features/battery/component/BatteryOverall.kt
+index 9c2e1b4..35ffa36 100644
+--- a/app/src/main/java/io/github/ifa/glancewidget/features/battery/component/BatteryOverall.kt
++++ b/app/src/main/java/io/github/ifa/glancewidget/features/battery/component/BatteryOverall.kt
+@@ -202,10 +202,18 @@ fun BatteryOverall(
+             modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
+         ) {
+ 
++            // History is stored in Celsius; show it in the same unit as the headline value.
++            val temperatureHistory = remember(chartTrackingData.temperatures, temperatureUnit) {
++                if (temperatureUnit == TemperatureUnit.FAHRENHEIT) {
++                    chartTrackingData.temperatures.map { it * 1.8f + 32f }
++                } else {
++                    chartTrackingData.temperatures
++                }
++            }
+             TemperatureMonitor(
+                 modifier = Modifier.weight(1f),
+                 temperature = temperature,
+-                temperatureTracking = chartTrackingData.temperatures
++                temperatureTracking = temperatureHistory
+             )
+             VoltageMonitor(
+                 modifier = Modifier.weight(1f),
+@@ -279,6 +287,9 @@ private fun TemperatureMonitor(
+     modifier: Modifier, temperature: MyDevice.Temperature, temperatureTracking: List<Float>
+ ) {
+     val modelProducer = remember { CartesianChartModelProducer() }
++    val temperatureRange = remember(temperatureTracking, temperature) {
++        temperatureTracking.ifEmpty { listOf(temperature.temperature) }.paddedRange(minSpan = 2.0)
++    }
+     LaunchedEffect(temperatureTracking) {
+         withContext(Dispatchers.Default) {
+             modelProducer.runTransaction {
+@@ -295,8 +306,8 @@ private fun TemperatureMonitor(
+         LineChart(
+             modelProducer = modelProducer,
+             modifier = Modifier.padding(top = 32.dp),
+-            minY = 25.0,
+-            maxY = 50.0
++            minY = temperatureRange.first,
++            maxY = temperatureRange.second
+         )
+         Text(
+             text = temperature.formatTemperature(),
+@@ -326,6 +337,9 @@ private fun VoltageMonitor(
+     voltageTracking: List<Float>,
+ ) {
+     val modelProducer = remember { CartesianChartModelProducer() }
++    val voltageRange = remember(voltageTracking, voltage) {
++        voltageTracking.ifEmpty { listOf(voltage) }.paddedRange(minSpan = 0.2)
++    }
+     LaunchedEffect(voltageTracking) {
+         withContext(Dispatchers.Default) {
+             modelProducer.runTransaction {
+@@ -342,8 +356,8 @@ private fun VoltageMonitor(
+         LineChart(
+             modelProducer = modelProducer,
+             modifier = Modifier.padding(top = 32.dp),
+-            minY = 1.0,
+-            maxY = 5.0
++            minY = voltageRange.first,
++            maxY = voltageRange.second
+         )
+         Text(
+             text = String.format("%.2f", voltage) + " V",
+@@ -364,6 +378,15 @@ private fun VoltageMonitor(
+     }
+ }
+ 
++/** Min/max of the data with 20% headroom on each side and at least [minSpan] of total range. */
++private fun List<Float>.paddedRange(minSpan: Double): Pair<Double, Double> {
++    val lo = minOrNull()?.toDouble() ?: 0.0
++    val hi = maxOrNull()?.toDouble() ?: 1.0
++    val span = (hi - lo).coerceAtLeast(minSpan)
++    val mid = (hi + lo) / 2.0
++    return (mid - span * 0.6) to (mid + span * 0.6)
++}
++
+ @Composable
+ private fun LineChart(
+     modelProducer: CartesianChartModelProducer, modifier: Modifier, minY: Double, maxY: Double
+@@ -376,7 +399,7 @@ private fun LineChart(
+                 LineCartesianLayer.LineProvider.series(
+                     LineCartesianLayer.rememberLine(
+                     remember(lineColor) { LineCartesianLayer.LineFill.single(fill(lineColor)) })),
+-                rangeProvider = remember {
++                rangeProvider = remember(minY, maxY) {
+                     CartesianLayerRangeProvider.fixed(minY = minY, maxY = maxY)
+                 },
+                 pointSpacing = 1.dp
+diff --git a/app/src/main/java/io/github/ifa/glancewidget/features/health/component/BatteryExtraInformation.kt b/app/src/main/java/io/github/ifa/glancewidget/features/health/component/BatteryExtraInformation.kt
+index 16b3d76..060d984 100644
+--- a/app/src/main/java/io/github/ifa/glancewidget/features/health/component/BatteryExtraInformation.kt
++++ b/app/src/main/java/io/github/ifa/glancewidget/features/health/component/BatteryExtraInformation.kt
+@@ -59,6 +59,9 @@ import io.github.ifa.glancewidget.model.wrapper.BatteryDataWrapper
+ import io.github.ifa.glancewidget.ui.component.AnimatedCounter
+ import io.github.ifa.glancewidget.utils.Constants.MAH_UNIT
+ 
++/** Negative / zero means "no reading from the system" - show a dash instead of "-1 mAh". */
++private fun Int.asMah(): String = if (this > 0) "$this $MAH_UNIT" else "--"
++
+ data class HealthItemData(
+     @StringRes val label: Int,
+     val value: String,
+@@ -104,8 +107,8 @@ fun BatteryExtraInformation(
+         HealthItemData(R.string.technology, myDevice.technology, Icons.Rounded.Build),
+         HealthItemData(R.string.health, stringResource(id = batteryHealth.type), Icons.Rounded.Favorite),
+         HealthItemData(R.string.design_capacity, "${extraBatteryInfo.capacity} $MAH_UNIT", Icons.Rounded.BatterySaver),
+-        HealthItemData(R.string.full_charge_capacity, "${extraBatteryInfo.fullChargeCapacity} $MAH_UNIT", Icons.Rounded.BatteryFull),
+-        HealthItemData(R.string.charge_counter, "${extraBatteryInfo.chargeCounter} $MAH_UNIT", Icons.Rounded.Refresh),
++        HealthItemData(R.string.full_charge_capacity, extraBatteryInfo.fullChargeCapacity.asMah(), Icons.Rounded.BatteryFull),
++        HealthItemData(R.string.charge_counter, extraBatteryInfo.chargeCounter.asMah(), Icons.Rounded.Refresh),
+         HealthItemData(R.string.cycle_count, myDevice.cycleCount.toString(), Icons.Rounded.ChangeCircle)
+     )
+ 
+diff --git a/app/src/main/java/io/github/ifa/glancewidget/model/BatteryData.kt b/app/src/main/java/io/github/ifa/glancewidget/model/BatteryData.kt
+index c42c5a7..2fd9a2f 100644
+--- a/app/src/main/java/io/github/ifa/glancewidget/model/BatteryData.kt
++++ b/app/src/main/java/io/github/ifa/glancewidget/model/BatteryData.kt
+@@ -6,7 +6,7 @@ import android.os.Build
+ import androidx.annotation.StringRes
+ import io.github.ifa.glancewidget.R
+ import kotlinx.serialization.Serializable
+-import kotlin.math.round
++import java.util.Locale
+ 
+ @Serializable
+ data class BatteryData(
+@@ -57,9 +57,14 @@ data class MyDevice(
+             CELSIUS("°C"), FAHRENHEIT("°F")
+         }
+ 
+-        fun formatTemperature(): String = "${round(temperature)} ${temperatureUnit.unit}"
++        fun formatTemperature(): String =
++            String.format(Locale.getDefault(), "%.1f %s", temperature, temperatureUnit.unit)
+     }
+ 
++    /** False for placeholder data built from an empty Intent (no scale / voltage extras). */
++    val hasValidReading: Boolean
++        get() = scale > 0 && voltage > 0f
++
+     fun getBatteryHealth(extraBatteryInfo: ExtraBatteryInfo): BatteryHealth {
+         val lossCapacityInPercent =
+             100.0 - (extraBatteryInfo.fullChargeCapacity.toFloat() / extraBatteryInfo.capacity.toFloat()) * 100.0
+diff --git a/app/src/main/java/io/github/ifa/glancewidget/utils/Constants.kt b/app/src/main/java/io/github/ifa/glancewidget/utils/Constants.kt
+index dcc1e9d..a902b49 100644
+--- a/app/src/main/java/io/github/ifa/glancewidget/utils/Constants.kt
++++ b/app/src/main/java/io/github/ifa/glancewidget/utils/Constants.kt
+@@ -3,6 +3,7 @@ package io.github.ifa.glancewidget.utils
+ object Constants {
+     const val MIN_DESIGN_CAPACITY = 1000
+     const val MAX_DESIGN_CAPACITY = 20000
++    const val MIN_PERCENT_FOR_FULL_CAPACITY_ESTIMATE = 30
+     const val MAH_UNIT = "mAh"
+     const val UAH_UNIT = "μAh"
+     const val MA_UNIT = "mA"
+diff --git a/app/src/main/java/io/github/ifa/glancewidget/utils/ContextExt.kt b/app/src/main/java/io/github/ifa/glancewidget/utils/ContextExt.kt
+index 76878fb..c5894aa 100644
+--- a/app/src/main/java/io/github/ifa/glancewidget/utils/ContextExt.kt
++++ b/app/src/main/java/io/github/ifa/glancewidget/utils/ContextExt.kt
+@@ -33,6 +33,7 @@ import io.github.ifa.glancewidget.model.DeviceType
+ import io.github.ifa.glancewidget.model.ExtraBatteryInfo
+ import io.github.ifa.glancewidget.utils.Constants.MAX_DESIGN_CAPACITY
+ import io.github.ifa.glancewidget.utils.Constants.MIN_DESIGN_CAPACITY
++import io.github.ifa.glancewidget.utils.Constants.MIN_PERCENT_FOR_FULL_CAPACITY_ESTIMATE
+ import androidx.core.graphics.createBitmap
+ import io.github.ifa.glancewidget.service.BatteryStatusService
+ 
+@@ -58,40 +59,65 @@ fun Context.safeGetPairedDevices(): List<BonedDevice> {
+     return runCatching { getPairedDevices() }.getOrDefault(emptyList())
+ }
+ 
+-fun Context.getExtraBatteryInformation(): ExtraBatteryInfo {
++/**
++ * Reads the live battery counters from [BatteryManager].
++ *
++ * @param previousFullChargeCapacity last stored full-charge estimate (mAh) or <= 0 if none. The
++ * estimate is derived from an integer battery percentage, so it is only trustworthy at higher
++ * charge levels. At low levels the previous value is kept and new estimates are smoothed.
++ */
++fun Context.getExtraBatteryInformation(previousFullChargeCapacity: Int = -1): ExtraBatteryInfo {
+     val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+-    val propertyChargeCounter =
++    val rawChargeCounter =
+         batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
+-    // this value is current charge counter in micro amp hours. But some device return in millis
+-    val chargeCounter = if (propertyChargeCounter / 1000 < MAX_DESIGN_CAPACITY / 1000) {
+-        propertyChargeCounter
+-    } else {
+-        propertyChargeCounter / 1000
++    // Int.MIN_VALUE (unsupported) and 0 (not ready) are not real readings.
++    // The value is in micro amp hours, but some devices already report milli amp hours.
++    val chargeCounter = when {
++        rawChargeCounter <= 0 -> -1
++        rawChargeCounter / 1000 < MAX_DESIGN_CAPACITY / 1000 -> rawChargeCounter
++        else -> rawChargeCounter / 1000
+     }
+-    val capacity = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
++    val capacityPercent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
++
++    // micro amp to milli amp. Int.MIN_VALUE means unsupported.
++    val rawCurrent = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
++    val chargeCurrent = if (rawCurrent == Int.MIN_VALUE) 0 else rawCurrent / 1_000
+ 
+-    val fullChargeCapacity = chargeCounter.toFloat() / capacity.toFloat() * 100f
+-    // micro amp to millis amp
+-    val chargeCurrent = batteryManager.getIntProperty(
+-        BatteryManager.BATTERY_PROPERTY_CURRENT_NOW
+-    ) / 1_000
+-    val designCapacity = getDesignCapacity()
++    // Reflection on a hidden class can fail: that must not take the other readings down with it.
++    val designCapacity = runCatching { getDesignCapacity() }.getOrNull()
++
++    val estimate = if (chargeCounter > 0 && capacityPercent in 1..100) {
++        chargeCounter * 100f / capacityPercent
++    } else {
++        -1f
++    }
++    val isEstimateReliable = capacityPercent >= MIN_PERCENT_FOR_FULL_CAPACITY_ESTIMATE
++    val clampTo = designCapacity ?: MAX_DESIGN_CAPACITY
++    val fullChargeCapacity = when {
++        estimate > 0 && previousFullChargeCapacity > 0 && isEstimateReliable ->
++            (previousFullChargeCapacity * 0.9f + estimate * 0.1f).roundToNearest(10, clampTo)
++
++        estimate > 0 && previousFullChargeCapacity <= 0 -> estimate.roundToNearest(10, clampTo)
++        previousFullChargeCapacity > 0 -> previousFullChargeCapacity
++        else -> -1
++    }
+ 
+     return ExtraBatteryInfo(
+-        capacity = designCapacity,
+-        fullChargeCapacity = fullChargeCapacity.roundToNearestHundred(designCapacity),
++        capacity = designCapacity ?: MIN_DESIGN_CAPACITY,
++        fullChargeCapacity = fullChargeCapacity,
+         chargeCounter = chargeCounter,
+         chargeCurrent = chargeCurrent
+     )
+ }
+ 
+-fun Float.roundToNearestHundred(capacity: Int): Int {
+-    val rounded = (this.toInt() + 50) / 100 * 100
+-    return minOf(rounded, capacity)
++fun Float.roundToNearest(step: Int, max: Int): Int {
++    val rounded = ((this + step / 2f) / step).toInt() * step
++    return minOf(rounded, max)
+ }
+ 
++/** Returns the design capacity in mAh, or null when it can not be read or looks implausible. */
+ @SuppressLint("PrivateApi")
+-private fun Context.getDesignCapacity(): Int {
++private fun Context.getDesignCapacity(): Int? {
+     val powerProfileClass = "com.android.internal.os.PowerProfile"
+     val mPowerProfile = Class.forName(powerProfileClass).getConstructor(
+         Context::class.java
+@@ -100,11 +126,7 @@ private fun Context.getDesignCapacity(): Int {
+         "getBatteryCapacity"
+     ).invoke(mPowerProfile) as Double).toInt()
+ 
+-    return when {
+-        designCapacity == 0 || designCapacity < MIN_DESIGN_CAPACITY
+-                || designCapacity > MAX_DESIGN_CAPACITY -> MIN_DESIGN_CAPACITY
+-        else -> designCapacity
+-    }
++    return designCapacity.takeIf { it in MIN_DESIGN_CAPACITY..MAX_DESIGN_CAPACITY }
+ }
+ 
+ fun Context.setLocale(localeCode: String) {
