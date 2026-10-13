@@ -20,11 +20,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-enum class ChartRange {
-    ONE_HOUR,
-    SIX_HOURS,
-    TWENTY_FOUR_HOURS,
-    ALL
+enum class ChartRange(val durationMs: Long) {
+    ONE_HOUR(1 * 60 * 60 * 1000L),
+    SIX_HOURS(6 * 60 * 60 * 1000L),
+    TWENTY_FOUR_HOURS(24 * 60 * 60 * 1000L),
+    ALL(Long.MAX_VALUE)
 }
 
 @HiltViewModel
@@ -62,7 +62,7 @@ class ChartDetailViewModel @Inject constructor(
     data class ChartDetailUiState(
         val metricType: String = ChartDetailDestination.METRIC_TEMPERATURE,
         val chartRecord: ChartRecord = ChartRecord(),
-        val temperatureUnit: MyDevice.Temperature.TemperatureUnit = MyDevice.Temperature.TemperatureUnit.CELSIUS,
+        val temperatureUnit: MyDevice.Temperature.TemperatureUnit? = null,
         val currentTemperatureCelsius: Float = 0f,
         val currentVoltage: Float = 0f,
         val selectedRange: ChartRange = ChartRange.TWENTY_FOUR_HOURS,

@@ -34,7 +34,7 @@ import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.common.component.TextComponent
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.features.battery.component.rememberMarker
-import io.github.ifa.glancewidget.ui.designsystem.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat

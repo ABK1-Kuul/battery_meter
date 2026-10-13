@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -50,11 +51,10 @@ import io.github.ifa.glancewidget.model.ChartRecord
 import io.github.ifa.glancewidget.model.MyDevice
 import io.github.ifa.glancewidget.ui.component.AnimatedTextTopAppBar
 import io.github.ifa.glancewidget.ui.component.SelectableChips
-import io.github.ifa.glancewidget.ui.designsystem.AppShape
-import io.github.ifa.glancewidget.ui.designsystem.Spacing
-import io.github.ifa.glancewidget.ui.designsystem.ThemePreviews
-import io.github.ifa.glancewidget.ui.designsystem.components.AppScaffold
 import io.github.ifa.glancewidget.ui.designsystem.components.SectionHeader
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import io.github.ifa.glancewidget.ui.localcomposition.LocalAnimatedVisibilityScope
 import io.github.ifa.glancewidget.ui.localcomposition.LocalSharedTransitionScope
 import kotlinx.serialization.Serializable
@@ -176,7 +176,7 @@ internal fun ChartDetailScreen(
     )
     val selectedRangeIndex = uiState.selectedRange.ordinal
 
-    AppScaffold(
+    Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             AnimatedTextTopAppBar(
@@ -196,14 +196,15 @@ internal fun ChartDetailScreen(
                 },
                 scrollBehavior = scrollBehavior,
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(Spacing.m),
+                .padding(horizontal = Spacing.screenHorizontal, vertical = Spacing.m),
             verticalArrangement = Arrangement.spacedBy(Spacing.l)
         ) {
             val sharedModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
