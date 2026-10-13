@@ -4,12 +4,6 @@ import android.annotation.SuppressLint
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -32,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -44,7 +39,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import io.github.ifa.glancewidget.features.battery.batteryMonitorScreenRoute
+import io.github.ifa.glancewidget.ui.designsystem.components.GravityNavPill
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.gravity.PillEndMargin
 import io.github.ifa.glancewidget.ui.localcomposition.LocalAnimatedVisibilityScope
 
 const val mainScreenRoute = "main_screen_route"
@@ -75,14 +72,6 @@ fun MainScreen(
     }
 
     Scaffold(
-        bottomBar = {
-            if (!isWide) {
-                MainFloatBottomBar(
-                    navController = mainTabNavController,
-                    colorScheme = colorScheme,
-                )
-            }
-        },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = colorScheme.surface
     ) { contentPadding ->
@@ -102,21 +91,46 @@ fun MainScreen(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
-                    enterTransition = { materialFadeThroughIn() },
-                    exitTransition = { materialFadeThroughOut() },
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
                 ) {
                     mainNavGraph(PaddingValues(), snackbarHostState)
                 }
             }
         } else {
-            NavHost(
-                navController = mainTabNavController,
-                startDestination = batteryMonitorScreenRoute,
-                modifier = Modifier.fillMaxSize(),
-                enterTransition = { materialFadeThroughIn() },
-                exitTransition = { materialFadeThroughOut() },
+            val navBackStackEntry by mainTabNavController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+            val currentTab = MainScreenTab.entries.find { it.route == currentRoute } ?: MainScreenTab.Widget
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(contentPadding)
             ) {
-                mainNavGraph(contentPadding, snackbarHostState)
+                NavHost(
+                    navController = mainTabNavController,
+                    startDestination = batteryMonitorScreenRoute,
+                    modifier = Modifier.fillMaxSize(),
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                ) {
+                    mainNavGraph(contentPadding, snackbarHostState)
+                }
+                GravityNavPill(
+                    selectedTab = currentTab,
+                    onTabSelected = { tab ->
+                        mainTabNavController.navigate(tab.route) {
+                            mainTabNavController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) { saveState = true }
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = PillEndMargin)
+                )
             }
         }
     }
@@ -174,29 +188,6 @@ fun MainNavigationRail(
         Spacer(modifier = Modifier.weight(1f))
     }
 }
-
-private fun materialFadeThroughIn(): EnterTransition = fadeIn(
-    animationSpec = tween(
-        durationMillis = 195,
-        delayMillis = 105,
-        easing = LinearOutSlowInEasing,
-    ),
-) + scaleIn(
-    animationSpec = tween(
-        durationMillis = 195,
-        delayMillis = 105,
-        easing = LinearOutSlowInEasing,
-    ),
-    initialScale = 0.92f,
-)
-
-private fun materialFadeThroughOut(): ExitTransition = fadeOut(
-    animationSpec = tween(
-        durationMillis = 105,
-        delayMillis = 0,
-        easing = FastOutLinearInEasing,
-    ),
-)
 
 @ThemePreviews
 @Composable
