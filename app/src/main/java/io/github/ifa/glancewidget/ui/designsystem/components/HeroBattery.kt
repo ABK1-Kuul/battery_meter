@@ -85,7 +85,8 @@ fun HeroBattery(
                         width = 16f,
                         cap = StrokeCap.Round
                     ),
-                    wavelength = if (model.isCharging) 32.dp else 0.dp
+                    wavelength = 32.dp,
+                    amplitude = if (model.isCharging) { _ -> 1f } else { _ -> 0f }
                 )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
