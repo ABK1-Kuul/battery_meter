@@ -1,48 +1,34 @@
 package io.github.ifa.glancewidget.features.settings
 
-import android.util.Log
-import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.AdaptStrategy
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.PaneExpansionAnchor
-import androidx.compose.material3.adaptive.layout.SupportingPaneScaffold
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldDefaults
 import androidx.compose.material3.adaptive.layout.SupportingPaneScaffoldRole
-import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.layout.rememberPaneExpansionState
 import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.NavigableSupportingPaneScaffold
@@ -59,8 +45,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,18 +53,20 @@ import androidx.navigation.compose.composable
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
 import io.github.ifa.glancewidget.BuildConfig
 import io.github.ifa.glancewidget.R
-import io.github.ifa.glancewidget.features.settings.about.AboutScreen
 import io.github.ifa.glancewidget.features.main.MainScreenTab
+import io.github.ifa.glancewidget.features.settings.about.AboutScreen
 import io.github.ifa.glancewidget.features.settings.component.LanguageSetting
 import io.github.ifa.glancewidget.features.settings.component.TemperatureUnitSetting
 import io.github.ifa.glancewidget.model.AppSettings
 import io.github.ifa.glancewidget.model.MyDevice
-import io.github.ifa.glancewidget.ui.theme.topBarColors
+import io.github.ifa.glancewidget.ui.designsystem.components.AppScaffold
+import io.github.ifa.glancewidget.ui.designsystem.components.SettingsGroup
+import io.github.ifa.glancewidget.ui.designsystem.components.SettingsRow
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import io.github.ifa.glancewidget.utils.combinePadding
 import io.github.ifa.glancewidget.utils.isAppCompatLocaleDeprecated
-import io.github.ifa.glancewidget.utils.listItemColor
 import io.github.ifa.glancewidget.utils.navigateUrl
-import io.github.ifa.glancewidget.utils.singleItemListItemShapes
 import io.github.ifa.glancewidget.utils.syncShowPairedDevicesToWidget
 import io.github.ifa.glancewidget.utils.syncThemeColorToWidget
 import io.github.ifa.glancewidget.utils.syncThemeToWidget
@@ -209,7 +195,7 @@ fun SettingsSupportingPaneScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SettingsScreenLayout(
     uiState: SettingsViewModel.SettingsScreenUiState,
@@ -222,112 +208,80 @@ internal fun SettingsScreenLayout(
     onSelectTemperatureUnit: (MyDevice.Temperature.TemperatureUnit) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
+    AppScaffold(
+        title = stringResource(id = MainScreenTab.Settings.label),
+        scrollBehavior = scrollBehavior,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = MainScreenTab.Settings.label),
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                subtitle = {},
-                titleHorizontalAlignment = Alignment.CenterHorizontally,
-                scrollBehavior = scrollBehavior,
-                colors = topBarColors
-            )
-        },
-        containerColor = topBarColors.containerColor,
     ) { padding ->
         val insets = combinePadding(padding, contentPadding)
         LazyColumn(
             contentPadding = insets,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l),
         ) {
-            if (!isAppCompatLocaleDeprecated()) {
-                item {
-                    LanguageSetting(onSelectLanguage = onSelectLanguage, uiState = uiState)
+            item {
+                SettingsGroup(title = stringResource(R.string.appearance)) {
+                    if (!isAppCompatLocaleDeprecated()) {
+                        LanguageSetting(onSelectLanguage = onSelectLanguage, uiState = uiState)
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = Spacing.l),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                        )
+                    }
+                    TemperatureUnitSetting(onSelectTemperatureUnit = onSelectTemperatureUnit, uiState = uiState)
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = Spacing.l),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                    SettingsRow(
+                        title = stringResource(R.string.theme),
+                        subtitle = stringResource(R.string.theme_settings_desc),
+                        leadingPainter = painterResource(R.drawable.ic_brightness_auto),
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        onClick = onOpenThemeSettings
+                    )
                 }
             }
             item {
-                TemperatureUnitSetting(onSelectTemperatureUnit = onSelectTemperatureUnit, uiState = uiState)
-            }
-            item {
-                SegmentedListItem(
-                    leadingContent = {
-                        Icon(painterResource(R.drawable.ic_brightness_auto), contentDescription = null)
-                    },
-                    trailingContent = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = colorScheme.primary
-                        )
-                    },
-                    supportingContent = {
-                        Text(text = stringResource(R.string.theme_settings_desc))
-                    },
-                    shapes = ListItemDefaults.segmentedShapes(2, 3),
-                    colors = listItemColor,
-                    onClick = onOpenThemeSettings,
-                ) {
-                    Text(stringResource(id = R.string.appearance))
+                SettingsGroup(title = stringResource(R.string.notification_settings)) {
+                    SettingsRow(
+                        title = stringResource(R.string.widget_tab),
+                        subtitle = stringResource(R.string.notification_settings_desc),
+                        leadingPainter = painterResource(R.drawable.ic_widgets_filled),
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        onClick = onOpenWidgetSettings
+                    )
                 }
             }
-            item { Spacer(modifier = Modifier.height(14.dp)) }
             item {
-                SegmentedListItem(
-                    leadingContent = {
-                        Icon(painterResource(R.drawable.ic_widgets_filled), contentDescription = null)
-                    },
-                    trailingContent = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    supportingContent = {
-                        Text(stringResource(id = R.string.notification_settings_desc))
-                    },
-                    shapes = ListItemDefaults.segmentedShapes(0, 1, singleItemListItemShapes),
-                    colors = listItemColor,
-                    onClick = onOpenWidgetSettings,
-                ) {
-                    Text(stringResource(id = R.string.notification_settings))
-                }
-            }
-            item { Spacer(modifier = Modifier.height(14.dp)) }
-            item {
-                SegmentedListItem(
-                    leadingContent = {
-                        Icon(painterResource(R.drawable.ic_info_filled), contentDescription = null)
-                    },
-                    trailingContent = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    supportingContent = {
-                        Text(
-                            text = BuildConfig.VERSION_NAME,
-                        )
-                    },
-                    shapes = ListItemDefaults.segmentedShapes(0, 1, singleItemListItemShapes),
-                    colors = listItemColor,
-                    onClick = onOpenAboutScreen,
-                ) {
-                    Text(stringResource(id = R.string.about_tab))
+                SettingsGroup(title = stringResource(R.string.about_tab)) {
+                    SettingsRow(
+                        title = stringResource(R.string.about_tab),
+                        subtitle = BuildConfig.VERSION_NAME,
+                        leadingPainter = painterResource(R.drawable.ic_info_filled),
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        onClick = onOpenAboutScreen
+                    )
                 }
             }
         }
@@ -338,7 +292,7 @@ internal fun SettingsScreenLayout(
 @Composable
 fun DetailPlaceholder(
     @DrawableRes icon: Int,
-    background: Color = colorScheme.surfaceContainerLow
+    background: Color = MaterialTheme.colorScheme.surfaceContainerLow
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -351,7 +305,7 @@ fun DetailPlaceholder(
                 Spacer(
                     Modifier
                         .background(
-                            colorScheme.secondaryContainer,
+                            MaterialTheme.colorScheme.secondaryContainer,
                             MaterialShapes.Cookie12Sided.toShape()
                         )
                         .size(128.dp)
@@ -359,16 +313,15 @@ fun DetailPlaceholder(
                 Icon(
                     painterResource(icon),
                     contentDescription = null,
-                    tint = colorScheme.onSecondaryContainer,
-                    modifier = Modifier
-                        .size(72.dp)
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(72.dp)
                 )
             }
         }
     }
 }
 
-@Preview(showBackground = true)
+@ThemePreviews
 @Composable
 fun SettingsScreenLayoutPreview() {
     MaterialTheme {

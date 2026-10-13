@@ -27,6 +27,7 @@ import androidx.compose.material3.FloatingToolbarDefaults.ScreenOffset
 import androidx.compose.material3.FloatingToolbarExitDirection
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.motionScheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
@@ -48,16 +49,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import androidx.window.core.layout.WindowSizeClass
 import io.github.ifa.glancewidget.R
-import io.github.ifa.glancewidget.features.settings.settingsScreenRoute
+import io.github.ifa.glancewidget.features.appusage.appUsageScreenRoute
 import io.github.ifa.glancewidget.features.battery.batteryMonitorScreenRoute
 import io.github.ifa.glancewidget.features.health.healthScreenRoute
+import io.github.ifa.glancewidget.features.settings.settingsScreenRoute
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 
 enum class MainScreenTab(
     val route: String,
@@ -70,6 +73,9 @@ enum class MainScreenTab(
     ),
     Health(
         healthScreenRoute, R.string.health, R.drawable.ic_ecg_heart_filled, R.drawable.ic_ecg_heart
+    ),
+    Usage(
+        appUsageScreenRoute, R.string.app_usage, R.drawable.ic_program_time, R.drawable.ic_program_time
     ),
     Settings(
         settingsScreenRoute, R.string.settings, R.drawable.ic_settings_filled, R.drawable.ic_settings
@@ -170,11 +176,10 @@ fun MainFloatBottomBar(
                             ) {
                                 Text(
                                     text = stringResource(item.label),
-                                    fontSize = 16.sp,
-                                    lineHeight = 24.sp,
+                                    style = MaterialTheme.typography.labelLarge,
                                     maxLines = 1,
                                     softWrap = false,
-                                    overflow = TextOverflow.Clip,
+                                    overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.padding(start = ButtonDefaults.IconSpacing)
                                 )
                             }
@@ -183,5 +188,16 @@ fun MainFloatBottomBar(
                 }
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun MainFloatBottomBarPreview() {
+    MaterialTheme {
+        MainFloatBottomBar(
+            navController = rememberNavController(),
+            colorScheme = MaterialTheme.colorScheme
+        )
     }
 }

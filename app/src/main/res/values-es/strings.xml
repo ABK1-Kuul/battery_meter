@@ -114,4 +114,7 @@
     <string name="send">Send</string>
     <string name="feedback_or_bug_report">Feedback or Bug Report</string>
     <string name="inquiry">Inquiry</string>
+    <string name="always_on_display">Pantalla siempre activa (AOD)</string>
+    <string name="always_on_display_desc">Mantener el monitor de batería visible en pantalla</string>
+    <string name="back">Atrás</string>
 </resources>

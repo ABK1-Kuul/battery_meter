@@ -8,17 +8,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -30,50 +26,43 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.features.settings.SettingsViewModel
 import io.github.ifa.glancewidget.model.MyDevice
-import io.github.ifa.glancewidget.utils.listItemColor
-import io.github.ifa.glancewidget.utils.singleItemListItemShapes
+import io.github.ifa.glancewidget.ui.designsystem.components.SettingsRow
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import kotlinx.coroutines.launch
 
 @SuppressLint("LocalContextConfigurationRead")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TemperatureUnitSetting(
     uiState: SettingsViewModel.SettingsScreenUiState,
     onSelectTemperatureUnit: (MyDevice.Temperature.TemperatureUnit) -> Unit
 ) {
-    val selectedUnit = uiState.temperatureUnit ?: MyDevice.Temperature.TemperatureUnit.CELSIUS // Should mostly be populated by now, default string if not
+    val selectedUnit = uiState.temperatureUnit ?: MyDevice.Temperature.TemperatureUnit.CELSIUS
     val sheetState = rememberModalBottomSheetState()
     val openBottomSheet = rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    SegmentedListItem(
-        leadingContent = {
-            Icon(painterResource(R.drawable.ic_device_thermostat), contentDescription = null)
+    SettingsRow(
+        title = stringResource(R.string.temperature_unit),
+        subtitle = if (selectedUnit == MyDevice.Temperature.TemperatureUnit.CELSIUS) {
+            stringResource(R.string.celsius_unit)
+        } else {
+            stringResource(R.string.fahrenheit_unit)
         },
-        supportingContent = {
-            Text(
-                text = if (selectedUnit == MyDevice.Temperature.TemperatureUnit.CELSIUS) {
-                            stringResource(R.string.celsius_unit)
-                       } else {
-                            stringResource(R.string.fahrenheit_unit)
-                       },
-            )
-        },
-        trailingContent = {
+        leadingPainter = painterResource(R.drawable.ic_device_thermostat),
+        trailing = {
             Icon(
                 imageVector = Icons.Rounded.KeyboardArrowDown,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
             )
         },
-        selected = openBottomSheet.value,
-        shapes = ListItemDefaults.segmentedShapes(1, 3),
-        colors = listItemColor,
         onClick = {
             if (openBottomSheet.value) {
                 scope.launch { sheetState.hide() }
@@ -81,10 +70,8 @@ fun TemperatureUnitSetting(
                 openBottomSheet.value = true
                 scope.launch { sheetState.show() }
             }
-        },
-    ) {
-        Text(stringResource(R.string.temperature_unit))
-    }
+        }
+    )
 
     if (openBottomSheet.value) {
         ModalBottomSheet(
@@ -93,7 +80,7 @@ fun TemperatureUnitSetting(
                 scope.launch { sheetState.hide() }
             },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.surface,
         ) {
             val units = MyDevice.Temperature.TemperatureUnit.entries
             units.forEach { unit ->
@@ -106,10 +93,10 @@ fun TemperatureUnitSetting(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                        .padding(horizontal = 16.dp)
+                        .padding(bottom = Spacing.m)
+                        .padding(horizontal = Spacing.l)
                         .height(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(AppShape.inner)
                         .clickable {
                             openBottomSheet.value = false
                             scope.launch { sheetState.hide() }
@@ -117,9 +104,9 @@ fun TemperatureUnitSetting(
                         }
                         .background(
                             MaterialTheme.colorScheme.surfaceContainerHigh,
-                            RoundedCornerShape(16.dp)
+                            AppShape.inner
                         )
-                        .padding(horizontal = 24.dp),
+                        .padding(horizontal = Spacing.xl),
                 ) {
                     Text(
                         text = unitName,
@@ -145,13 +132,15 @@ fun TemperatureUnitSetting(
     }
 }
 
-@Preview(showBackground = true)
+@ThemePreviews
 @Composable
 fun TemperatureUnitSettingPreview() {
     MaterialTheme {
         TemperatureUnitSetting(
             uiState = SettingsViewModel.SettingsScreenUiState(
                 temperatureUnit = MyDevice.Temperature.TemperatureUnit.CELSIUS
-            ), onSelectTemperatureUnit = {})
+            ),
+            onSelectTemperatureUnit = {}
+        )
     }
 }

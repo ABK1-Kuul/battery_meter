@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.FormatColorFill
@@ -32,11 +31,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.dotsdev.material3color.getLightScheme
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.model.ThemeTypeColor
-import com.dotsdev.material3color.getLightScheme
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 
 @Composable
 fun SelectablePaletteItem(
@@ -50,15 +51,14 @@ fun SelectablePaletteItem(
     } else {
         PaletteItem(
             modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.background)
+                .clip(AppShape.inner)
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
                 .clickable { onClick(themeTypeColor) }
-                .padding(12.dp),
+                .padding(Spacing.m),
             getLightScheme(themeTypeColor.code),
             isSelected
         )
     }
-
 }
 
 @Composable
@@ -69,91 +69,120 @@ private fun DefaultPaletteItem(
     onClick: (ThemeTypeColor) -> Unit = {}
 ) {
     val selectedShape by animateFloatAsState(
-        targetValue = if (isSelected) 0.5f else 1.0f, label = "", animationSpec = spring(
+        targetValue = if (isSelected) 0.5f else 1.0f,
+        label = "",
+        animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessLow
         )
     )
     Box(
         modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.background)
+            .clip(AppShape.inner)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .clickable { onClick(themeTypeColor) }
-            .padding(16.dp),
+            .padding(Spacing.m),
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            modifier = Modifier.fillMaxSize(selectedShape),
-            imageVector = Icons.Rounded.FormatColorFill,
-            contentDescription = "Dynamic",
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = selectedShape)
+            painterResource(R.drawable.ic_contrast),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            tint = MaterialTheme.colorScheme.onSurface
         )
+
+        AnimatedVisibility(
+            visible = isSelected,
+            enter = scaleIn(spring(Spring.DampingRatioMediumBouncy)),
+            exit = scaleOut(spring(Spring.DampingRatioMediumBouncy))
+        ) {
+            Box(
+                Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun PaletteItem(modifier: Modifier, colorScheme: ColorScheme, isSelected: Boolean) {
+fun PaletteItem(
+    modifier: Modifier,
+    colorScheme: ColorScheme,
+    isSelected: Boolean = false
+) {
     val selectedShape by animateFloatAsState(
-        targetValue = if (isSelected) 0.6f else 0.45f, label = "", animationSpec = spring(
+        targetValue = if (isSelected) 0.5f else 1.0f,
+        label = "",
+        animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessLow
         )
     )
     Box(
         modifier = modifier
-            .clip(CircleShape)
-            .aspectRatio(1.0f),
-        contentAlignment = Alignment.Center
     ) {
-        Column {
-            Spacer(
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .weight(1f)
-                    .background(colorScheme.primaryContainer)
+                    .fillMaxWidth()
+                    .clip(CircleShape)
+                    .background(colorScheme.primary)
             )
-            Spacer(
+            Spacer(modifier = Modifier.height(Spacing.xs))
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .weight(1f)
-                    .background(colorScheme.tertiaryContainer)
+                    .fillMaxWidth()
+                    .clip(CircleShape)
+                    .background(colorScheme.tertiary)
             )
         }
-        Spacer(
-            modifier = Modifier
-                .fillMaxSize(selectedShape)
-                .clip(CircleShape)
-                .background(colorScheme.primary)
-        )
-        AnimatedVisibility(visible = isSelected, enter = scaleIn(), exit = scaleOut()) {
-            Icon(
-                modifier = Modifier.fillMaxSize(0.4f),
-                imageVector = Icons.Default.Check,
-                contentDescription = "Check",
-                tint = colorScheme.onPrimary
-            )
+
+        AnimatedVisibility(
+            visible = isSelected,
+            enter = scaleIn(spring(Spring.DampingRatioMediumBouncy)),
+            exit = scaleOut(spring(Spring.DampingRatioMediumBouncy)),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Box(
+                Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     }
 }
 
-@Preview
+@ThemePreviews
 @Composable
-fun PaletteItemPreview() {
-    SelectablePaletteItem(
-        modifier = Modifier
-            .height(200.dp)
-            .width(100.dp),
-        themeTypeColor = ThemeTypeColor.System,
-        isSelected = true
-    )
-}
-
-@Preview
-@Composable
-fun PaletteItemSelectedPreview() {
-    SelectablePaletteItem(
-        modifier = Modifier.size(100.dp),
-        themeTypeColor = ThemeTypeColor.FireRed,
-        isSelected = true
-    )
+fun SelectablePaletteItemPreview() {
+    MaterialTheme {
+        SelectablePaletteItem(
+            modifier = Modifier.size(64.dp),
+            themeTypeColor = ThemeTypeColor.FlowerBlue,
+            isSelected = true
+        )
+    }
 }

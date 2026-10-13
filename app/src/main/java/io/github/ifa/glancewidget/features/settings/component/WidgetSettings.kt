@@ -8,25 +8,25 @@ import android.provider.Settings
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.BluetoothConnected
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
@@ -38,7 +38,9 @@ import io.github.ifa.glancewidget.BuildConfig
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.model.AppSettings
 import io.github.ifa.glancewidget.ui.component.AppAlertDialog
-import io.github.ifa.glancewidget.ui.component.SwitchWithDescription
+import io.github.ifa.glancewidget.ui.designsystem.components.SettingsGroup
+import io.github.ifa.glancewidget.ui.designsystem.components.SettingsRow
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import io.github.ifa.glancewidget.utils.BluetoothPermissions
 import io.github.ifa.glancewidget.utils.checkPermissions
 import io.github.ifa.glancewidget.utils.isNotificationPermissionGranted
@@ -115,101 +117,118 @@ fun WidgetSettings(
         )
     }
 
-    SwitchWithDescription(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(16.dp)),
-        label = stringResource(id = R.string.battery_alert),
-        description = stringResource(id = R.string.battery_alert_desc),
-        icon = Icons.Rounded.BatteryChargingFull,
-        onCheckedChange = scope@{ checked ->
-            if (notificationPermission == null) {
-                if (!checked) {
-                    context.startActivity(NotificationSettingsIntent, null)
-                } else {
-                    onSetNotificationEnabled(true)
-                    notificationEnabled = true
-                }
-                return@scope
-            }
-            if (checked) {
-                notificationEnabled = true
-                if (!notificationPermission.status.isGranted) {
-                    if (notificationPermission.status.shouldShowRationale) {
-                        notificationPermission.launchPermissionRequest()
-                    } else {
-                        dialogUiState = SettingAlertDialogUiState(
-                            isOpen = true,
-                            title = R.string.need_to_allow_notification,
-                            text = R.string.allow_notification,
-                            onDismissRequest = { notificationEnabled = false },
-                            positiveButtonText = R.string.go_to_app_settings,
-                            icon = Icons.Default.Notifications,
-                            onConfirmation = {
-                                onSetNotificationEnabled(true)
+    SettingsGroup(
+        title = stringResource(id = R.string.notification_settings)
+    ) {
+        SettingsRow(
+            title = stringResource(id = R.string.battery_alert),
+            subtitle = stringResource(id = R.string.battery_alert_desc),
+            leadingIcon = Icons.Rounded.BatteryChargingFull,
+            trailing = {
+                Switch(
+                    checked = notificationEnabled,
+                    onCheckedChange = scope@{ checked ->
+                        if (notificationPermission == null) {
+                            if (!checked) {
                                 context.startActivity(NotificationSettingsIntent, null)
-                            },
-                        )
+                            } else {
+                                onSetNotificationEnabled(true)
+                                notificationEnabled = true
+                            }
+                            return@scope
+                        }
+                        if (checked) {
+                            notificationEnabled = true
+                            if (!notificationPermission.status.isGranted) {
+                                if (notificationPermission.status.shouldShowRationale) {
+                                    notificationPermission.launchPermissionRequest()
+                                } else {
+                                    dialogUiState = SettingAlertDialogUiState(
+                                        isOpen = true,
+                                        title = R.string.need_to_allow_notification,
+                                        text = R.string.allow_notification,
+                                        onDismissRequest = { notificationEnabled = false },
+                                        positiveButtonText = R.string.go_to_app_settings,
+                                        icon = Icons.Default.Notifications,
+                                        onConfirmation = {
+                                            onSetNotificationEnabled(true)
+                                            context.startActivity(NotificationSettingsIntent, null)
+                                        },
+                                    )
+                                }
+                            } else {
+                                onSetNotificationEnabled(true)
+                            }
+                        } else {
+                            context.startActivity(NotificationSettingsIntent, null)
+                            notificationEnabled = true
+                        }
                     }
-                } else {
-                    onSetNotificationEnabled(true)
-                }
-            } else {
-                context.startActivity(NotificationSettingsIntent, null)
-                notificationEnabled = true
+                )
             }
-        },
-        checked = notificationEnabled,
-    )
+        )
 
-    SwitchWithDescription(
-        modifier = Modifier
-            .padding(16.dp)
-            .clip(RoundedCornerShape(16.dp)),
-        icon = Icons.Rounded.Sync,
-        label = stringResource(id = R.string.sync_color_scheme_with_widget),
-        description = stringResource(id = R.string.sync_color_scheme_with_widget_description),
-        onCheckedChange = scope@{ checked ->
-            syncEnabled = checked
-        },
-        checked = syncEnabled,
-    )
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = Spacing.l),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        )
 
-    SwitchWithDescription(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .clip(RoundedCornerShape(16.dp)),
-        label = stringResource(id = R.string.show_paired_devices),
-        description = stringResource(id = R.string.show_paired_devices_desc),
-        icon = Icons.Rounded.BluetoothConnected,
-        onCheckedChange = checkedChange@{ checked ->
-            showPairedDevice = checked
-            if (!context.checkPermissions(BluetoothPermissions) && checked) {
-                if (bluetoothPermissions.shouldShowRationale) {
-                    bluetoothPermissions.launchMultiplePermissionRequest()
-                } else {
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                        onSetNotificationEnabled(true)
-                        return@checkedChange
+        SettingsRow(
+            title = stringResource(id = R.string.sync_color_scheme_with_widget),
+            subtitle = stringResource(id = R.string.sync_color_scheme_with_widget_description),
+            leadingIcon = Icons.Rounded.Sync,
+            trailing = {
+                Switch(
+                    checked = syncEnabled,
+                    onCheckedChange = { checked ->
+                        syncEnabled = checked
                     }
-                    dialogUiState = SettingAlertDialogUiState(
-                        isOpen = true,
-                        title = R.string.need_to_grant_permission,
-                        text = R.string.grant_permission_bluetooth_guide,
-                        onDismissRequest = { showPairedDevice = false },
-                        iconRes = R.drawable.ic_nearby_off,
-                        onConfirmation = {
-                            onSetShowPairedDevice(true)
-                            context.startActivity(ApplicationDetailsSettingsIntent, null)
-                        },
-                    )
-                }
-            } else {
-                onSetShowPairedDevice(checked)
+                )
             }
-        },
-        checked = showPairedDevice,
-    )
+        )
+
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = Spacing.l),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        )
+
+        SettingsRow(
+            title = stringResource(id = R.string.show_paired_devices),
+            subtitle = stringResource(id = R.string.show_paired_devices_desc),
+            leadingIcon = Icons.Rounded.BluetoothConnected,
+            trailing = {
+                Switch(
+                    checked = showPairedDevice,
+                    onCheckedChange = checkedChange@{ checked ->
+                        showPairedDevice = checked
+                        if (!context.checkPermissions(BluetoothPermissions) && checked) {
+                            if (bluetoothPermissions.shouldShowRationale) {
+                                bluetoothPermissions.launchMultiplePermissionRequest()
+                            } else {
+                                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                                    onSetNotificationEnabled(true)
+                                    return@checkedChange
+                                }
+                                dialogUiState = SettingAlertDialogUiState(
+                                    isOpen = true,
+                                    title = R.string.need_to_grant_permission,
+                                    text = R.string.grant_permission_bluetooth_guide,
+                                    onDismissRequest = { showPairedDevice = false },
+                                    iconRes = R.drawable.ic_nearby_off,
+                                    onConfirmation = {
+                                        onSetShowPairedDevice(true)
+                                        context.startActivity(ApplicationDetailsSettingsIntent, null)
+                                    },
+                                )
+                            }
+                        } else {
+                            onSetShowPairedDevice(checked)
+                        }
+                    }
+                )
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalPermissionsApi::class)

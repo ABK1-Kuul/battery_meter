@@ -115,4 +115,7 @@
     <string name="send">Send</string>
     <string name="feedback_or_bug_report">Feedback or Bug Report</string>
     <string name="inquiry">Inquiry</string>
+    <string name="always_on_display">Écran toujours allumé (AOD)</string>
+    <string name="always_on_display_desc">Garder le moniteur de batterie affiché à l\'écran</string>
+    <string name="back">Retour</string>
 </resources>

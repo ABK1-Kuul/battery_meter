@@ -115,4 +115,7 @@
     <string name="send">Send</string>
     <string name="feedback_or_bug_report">Feedback or Bug Report</string>
     <string name="inquiry">Inquiry</string>
+    <string name="always_on_display">Màn hình luôn bật (AOD)</string>
+    <string name="always_on_display_desc">Giữ đồng hồ đo pin hiển thị trên màn hình</string>
+    <string name="back">Quay lại</string>
 </resources>

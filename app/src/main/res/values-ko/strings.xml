@@ -114,4 +114,7 @@
     <string name="send">Send</string>
     <string name="feedback_or_bug_report">Feedback or Bug Report</string>
     <string name="inquiry">Inquiry</string>
+    <string name="always_on_display">Always On Display</string>
+    <string name="always_on_display_desc">화면에 배터리 모니터를 계속 표시합니다</string>
+    <string name="back">뒤로</string>
 </resources>

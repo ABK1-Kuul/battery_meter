@@ -53,7 +53,7 @@ private fun NavGraphBuilder.mainScreen(
             onOpenInquiryScreen = navController::navigateToInquiryScreen
         )
         healthScreen(contentPadding = contentPadding)
-        appUsageScreen()
+        appUsageScreen(contentPadding = contentPadding)
         settingsScreen(contentPadding = contentPadding)
     }
 }

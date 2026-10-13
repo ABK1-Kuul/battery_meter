@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material3.Icon
@@ -27,10 +26,12 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.model.BonedDevice
 import io.github.ifa.glancewidget.model.DeviceType
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 
 @Composable
 fun BonedDeviceItem(
@@ -41,23 +42,22 @@ fun BonedDeviceItem(
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 4.dp, horizontal = 16.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp)
+            .padding(vertical = Spacing.xs, horizontal = Spacing.l)
+            .clip(AppShape.card)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(Spacing.s)
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 8.dp)
+                .padding(horizontal = Spacing.s)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-
-            ) {
+        ) {
             if (device.batteryInPercentage <= 0) {
                 Image(
                     modifier = Modifier
                         .size(32.dp)
-                        .padding(end = 8.dp),
+                        .padding(end = Spacing.s),
                     painter = painterResource(device.deviceType.icon),
                     contentDescription = null,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
@@ -80,12 +80,12 @@ fun BonedDeviceItem(
                 if (device.batteryInPercentage > 0) {
                     Icon(
                         imageVector = Icons.Rounded.Widgets,
-                        contentDescription = "widget",
+                        contentDescription = null,
                         modifier = Modifier,
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(Spacing.s))
                 Switch(
                     checked = showInWidget,
                     onCheckedChange = {
@@ -93,7 +93,6 @@ fun BonedDeviceItem(
                     },
                 )
             }
-
         }
         if (device.batteryInPercentage > 0) {
             Box(
@@ -109,26 +108,27 @@ fun BonedDeviceItem(
                     isCharging = false,
                     isTransparent = true,
                     isShowLargeLevel = true,
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier.padding(Spacing.s)
                 )
             }
         }
     }
-
 }
 
-@Preview
+@ThemePreviews
 @Composable
 fun BonedDeviceItemPreview() {
-    BonedDeviceItem(
-        device = BonedDevice(
-            name = "MX keys board MX keys board",
-            address = "AF:BB:99:00:00:00",
-            batteryInPercentage = 80,
-            batteryInMinutes = 0,
-            deviceType = DeviceType.OTHER
-        ),
-        onShowInWidgetChanged = { _, _ -> },
-        showInWidget = false
-    )
+    MaterialTheme {
+        BonedDeviceItem(
+            device = BonedDevice(
+                name = "MX keys board MX keys board",
+                address = "AF:BB:99:00:00:00",
+                batteryInPercentage = 80,
+                batteryInMinutes = 0,
+                deviceType = DeviceType.OTHER
+            ),
+            onShowInWidgetChanged = { _, _ -> },
+            showInWidget = false
+        )
+    }
 }

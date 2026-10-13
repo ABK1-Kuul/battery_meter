@@ -8,17 +8,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -31,18 +27,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.features.settings.SettingsViewModel
 import io.github.ifa.glancewidget.model.AppSettings
-import io.github.ifa.glancewidget.utils.listItemColor
-import io.github.ifa.glancewidget.utils.singleItemListItemShapes
+import io.github.ifa.glancewidget.ui.designsystem.components.SettingsRow
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import kotlinx.coroutines.launch
 
 @SuppressLint("LocalContextConfigurationRead")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageSetting(
     uiState: SettingsViewModel.SettingsScreenUiState,
@@ -55,25 +52,17 @@ fun LanguageSetting(
     val openBottomSheet = rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    SegmentedListItem(
-        leadingContent = {
-            Icon(painterResource(R.drawable.ic_language), contentDescription = null)
-        },
-        supportingContent = {
-            Text(
-                text = stringResource(selectedLanguage.displayNameResId()),
-            )
-        },
-        trailingContent = {
+    SettingsRow(
+        title = stringResource(R.string.language),
+        subtitle = stringResource(selectedLanguage.displayNameResId()),
+        leadingPainter = painterResource(R.drawable.ic_language),
+        trailing = {
             Icon(
                 imageVector = Icons.Rounded.KeyboardArrowDown,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
             )
         },
-        selected = openBottomSheet.value,
-        shapes = ListItemDefaults.segmentedShapes(0, 3),
-        colors = listItemColor,
         onClick = {
             if (openBottomSheet.value) {
                 scope.launch { sheetState.hide() }
@@ -81,10 +70,8 @@ fun LanguageSetting(
                 openBottomSheet.value = true
                 scope.launch { sheetState.show() }
             }
-        },
-    ) {
-        Text(stringResource(R.string.language))
-    }
+        }
+    )
 
     if (openBottomSheet.value) {
         ModalBottomSheet(
@@ -93,7 +80,7 @@ fun LanguageSetting(
                 scope.launch { sheetState.hide() }
             },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.surface,
         ) {
             AppSettings.Language.options().fastForEach { languageCode ->
                 val language = AppSettings.Language.fromCode(languageCode)
@@ -101,10 +88,10 @@ fun LanguageSetting(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                        .padding(horizontal = 16.dp)
+                        .padding(bottom = Spacing.m)
+                        .padding(horizontal = Spacing.l)
                         .height(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(AppShape.inner)
                         .clickable {
                             openBottomSheet.value = false
                             scope.launch { sheetState.hide() }
@@ -112,9 +99,9 @@ fun LanguageSetting(
                         }
                         .background(
                             MaterialTheme.colorScheme.surfaceContainerHigh,
-                            RoundedCornerShape(16.dp)
+                            AppShape.inner
                         )
-                        .padding(horizontal = 24.dp),
+                        .padding(horizontal = Spacing.xl),
                 ) {
                     Text(
                         text = stringResource(id = language.displayNameResId()),
@@ -135,19 +122,20 @@ fun LanguageSetting(
                         )
                     }
                 }
-
             }
         }
     }
 }
 
-@Preview(showBackground = true)
+@ThemePreviews
 @Composable
 fun LanguageSettingPreview() {
     MaterialTheme {
         LanguageSetting(
             uiState = SettingsViewModel.SettingsScreenUiState(
                 language = AppSettings.Language.ENGLISH
-            ), onSelectLanguage = {})
+            ),
+            onSelectLanguage = {}
+        )
     }
 }

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -18,10 +17,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.model.ThemeType
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 
 @Composable
 fun ThemeSettingItem(
@@ -32,11 +33,10 @@ fun ThemeSettingItem(
 ) {
     Surface(
         onClick = { onSelectTheme(themeType) },
-        shape = RoundedCornerShape(16.dp),
+        shape = AppShape.inner,
         modifier = modifier.height(90.dp).fillMaxWidth(),
-        tonalElevation = if (selected) 6.dp else 0.dp,
-        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
-        contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
+        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerLow,
+        contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
     ) {
         Box {
             Column(
@@ -46,7 +46,7 @@ fun ThemeSettingItem(
                 Icon(
                     themeType.themeIcon(), contentDescription = null
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(Spacing.xs))
                 Text(
                     themeType.themeName(),
                     textAlign = TextAlign.Center,
@@ -73,14 +73,18 @@ private fun ThemeType.themeName(): String = when (this) {
     ThemeType.LIGHT_THEME -> stringResource(R.string.light_theme)
 }
 
-@Preview
+@ThemePreviews
 @Composable
 fun ThemeSettingItemSelectedPreview() {
-    ThemeSettingItem(themeType = ThemeType.FOLLOW_SYSTEM, onSelectTheme = {}, selected = true)
+    MaterialTheme {
+        ThemeSettingItem(themeType = ThemeType.FOLLOW_SYSTEM, onSelectTheme = {}, selected = true)
+    }
 }
 
-@Preview
+@ThemePreviews
 @Composable
 fun ThemeSettingItemPreview() {
-    ThemeSettingItem(themeType = ThemeType.FOLLOW_SYSTEM, onSelectTheme = {}, selected = false)
+    MaterialTheme {
+        ThemeSettingItem(themeType = ThemeType.FOLLOW_SYSTEM, onSelectTheme = {}, selected = false)
+    }
 }

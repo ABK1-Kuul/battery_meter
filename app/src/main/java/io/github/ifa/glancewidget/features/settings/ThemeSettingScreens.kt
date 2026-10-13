@@ -21,13 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.features.settings.component.ThemeSetting
 import io.github.ifa.glancewidget.model.ThemeType
 import io.github.ifa.glancewidget.model.ThemeTypeColor
 import io.github.ifa.glancewidget.ui.component.AnimatedTextTopAppBar
-import io.github.ifa.glancewidget.ui.theme.topBarColors
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 
 @Composable
 fun ThemeSettingsScreen(
@@ -71,26 +71,26 @@ internal fun ThemeSettingsScreenLayout(
                     if (showNavigationIcon) IconButton(
                         onClick = { onNavigationIconClick() },
                         colors = IconButtonDefaults.iconButtonColors().copy(
-                            containerColor = MaterialTheme.colorScheme.background
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                         )
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.ArrowBackIosNew,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(id = R.string.back),
                         )
                     }
                 },
                 scrollBehavior = scrollBehavior,
             )
         },
-        containerColor = topBarColors.containerColor,
+        containerColor = MaterialTheme.colorScheme.surface,
     ) { padding ->
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l),
             contentPadding = padding,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 16.dp)
+                .padding(top = Spacing.l)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
             item {
@@ -102,5 +102,20 @@ internal fun ThemeSettingsScreenLayout(
                 )
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun ThemeSettingsScreenPreview() {
+    MaterialTheme {
+        ThemeSettingsScreen(
+            uiState = SettingsViewModel.SettingsScreenUiState(),
+            showNavigationIcon = true,
+            onNavigationIconClick = {},
+            onSelectTheme = {},
+            onSelectThemeColor = {},
+            onEnableBlackDark = {}
+        )
     }
 }

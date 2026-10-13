@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.domain.UsageStatsWrapper
 import io.github.ifa.glancewidget.features.appusage.AppUsageScreenUiState
 import io.github.ifa.glancewidget.ui.component.SelectableChips
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 
 fun Long.formatDuration(): String {
     val totalSeconds = this / 1000
@@ -64,24 +65,28 @@ fun AppUsageList(
         targetValue = if (isHeaderStuck) {
             MaterialTheme.colorScheme.surfaceContainer
         } else {
-            MaterialTheme.colorScheme.background
+            MaterialTheme.colorScheme.surface
         },
         label = "headerBackgroundColor"
     )
+    val maxUsageTime = remember(appUsageStats) {
+        val max = appUsageStats.maxOfOrNull { it.usageStats?.totalTimeInForeground ?: 0L } ?: 1L
+        if (max > 0L) max else 1L
+    }
 
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.surface),
         state = lazyListState,
-        contentPadding = PaddingValues(bottom = 16.dp),
+        contentPadding = PaddingValues(bottom = Spacing.l),
     ) {
         stickyHeader {
             SelectableChips(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(headerBackgroundColor)
-                    .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                    .padding(horizontal = Spacing.l, vertical = Spacing.s),
                 options = options.map { stringResource(it.displayName()) },
                 selected = options.indexOf(usageRange),
                 onSelect = {
@@ -95,7 +100,7 @@ fun AppUsageList(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = Spacing.l, vertical = Spacing.s),
                     appUsageStats = appUsageStats.take(4)
                 )
             }
@@ -105,7 +110,7 @@ fun AppUsageList(
                 Box(
                     modifier = Modifier
                         .fillParentMaxSize()
-                        .padding(16.dp),
+                        .padding(Spacing.l),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -116,15 +121,17 @@ fun AppUsageList(
             items = appUsageStats,
             key = { appUsage -> appUsage.usageStats?.packageName.orEmpty() }
         ) { appUsage ->
+            val usage = appUsage.usageStats?.totalTimeInForeground ?: 0L
+            val progress = (usage.toFloat() / maxUsageTime.toFloat()).coerceIn(0f, 1f)
             AppUsageItem(
                 appName = appUsage.appName,
                 appIcon = appUsage.appIcon,
-                usageTime = appUsage.usageStats?.totalTimeInForeground ?: 0,
+                usageTime = usage,
+                progress = progress,
                 modifier = Modifier.animateItem(
-                    // Add animation here
-                    fadeInSpec = tween(500), // Fade-in animation
-                    fadeOutSpec = tween(500), // Fade-out animation
-                    placementSpec = tween(500), // Slide-in animation
+                    fadeInSpec = tween(500),
+                    fadeOutSpec = tween(500),
+                    placementSpec = tween(500),
                 ),
                 onAppClick = {
                     onAppUsageClick(appUsage.usageStats?.packageName.orEmpty())
