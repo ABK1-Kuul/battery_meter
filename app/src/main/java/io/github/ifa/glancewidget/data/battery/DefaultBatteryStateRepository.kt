@@ -177,13 +177,13 @@ class DefaultBatteryStateRepository(
     }
 
     override suspend fun saveHistoryForChart(temperature: Float, voltage: Float) {
-        // Placeholder values (-0.1 C / -0.001 V) from an empty Intent are not measurements.
         if (voltage <= 0f || temperature <= -50f) return
         context.batteryWidgetStore.edit { prefs ->
             val history = fromJson<ChartRecord>(prefs[BatteryDataStore.CHART_RECORD_PREFERENCES])
                 ?: ChartRecord()
             val temperatures = history.temperatures.toMutableList()
             val voltages = history.voltages.toMutableList()
+            val timestamps = history.timestamps.toMutableList()
             var changed = false
             if (temperature != temperatures.lastOrNull()) {
                 temperatures.add(temperature)
@@ -194,10 +194,12 @@ class DefaultBatteryStateRepository(
                 changed = true
             }
             if (changed) {
+                timestamps.add(System.currentTimeMillis())
                 prefs[BatteryDataStore.CHART_RECORD_PREFERENCES] = toJson(
                     ChartRecord(
                         temperatures = temperatures.takeLast(MAX_HISTORY_POINTS),
                         voltages = voltages.takeLast(MAX_HISTORY_POINTS),
+                        timestamps = timestamps.takeLast(MAX_HISTORY_POINTS),
                     )
                 )
             }

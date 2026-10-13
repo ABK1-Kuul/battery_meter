@@ -122,4 +122,10 @@
     <string name="widget_style_circle">Circulaire</string>
     <string name="widget_transparency_opaque">Standard</string>
     <string name="widget_transparency_transparent">Transparent</string>
+    <string name="chart_range_1h">1h</string>
+    <string name="chart_range_6h">6h</string>
+    <string name="chart_range_24h">24h</string>
+    <string name="chart_range_all">Tout</string>
+    <string name="chart_history">Historique</string>
+    <string name="no_chart_data">Aucune donnée d\'historique enregistrée pour le moment</string>
 </resources>

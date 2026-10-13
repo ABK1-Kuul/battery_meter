@@ -121,4 +121,10 @@
     <string name="widget_style_circle">원형</string>
     <string name="widget_transparency_opaque">표준</string>
     <string name="widget_transparency_transparent">투명</string>
+    <string name="chart_range_1h">1h</string>
+    <string name="chart_range_6h">6h</string>
+    <string name="chart_range_24h">24h</string>
+    <string name="chart_range_all">전체</string>
+    <string name="chart_history">기록</string>
+    <string name="no_chart_data">아직 기록된 기록 데이터가 없습니다</string>
 </resources>

@@ -122,4 +122,10 @@
     <string name="widget_style_circle">Hình tròn</string>
     <string name="widget_transparency_opaque">Tiêu chuẩn</string>
     <string name="widget_transparency_transparent">Trong suốt</string>
+    <string name="chart_range_1h">1h</string>
+    <string name="chart_range_6h">6h</string>
+    <string name="chart_range_24h">24h</string>
+    <string name="chart_range_all">Tất cả</string>
+    <string name="chart_history">Lịch sử</string>
+    <string name="no_chart_data">Chưa có dữ liệu lịch sử nào được ghi lại</string>
 </resources>

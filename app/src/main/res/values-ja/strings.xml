@@ -122,4 +122,10 @@
     <string name="widget_style_circle">円形</string>
     <string name="widget_transparency_opaque">標準</string>
     <string name="widget_transparency_transparent">透明</string>
+    <string name="chart_range_1h">1h</string>
+    <string name="chart_range_6h">6h</string>
+    <string name="chart_range_24h">24h</string>
+    <string name="chart_range_all">すべて</string>
+    <string name="chart_history">履歴</string>
+    <string name="no_chart_data">履歴データはまだ記録されていません</string>
 </resources>

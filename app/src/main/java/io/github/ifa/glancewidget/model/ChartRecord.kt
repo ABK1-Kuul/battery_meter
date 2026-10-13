@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 data class ChartRecord(
     val temperatures: List<Float> = listOf(),
     val voltages: List<Float> = listOf(),
+    val timestamps: List<Long> = listOf(),
 )
