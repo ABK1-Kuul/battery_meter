@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -184,6 +185,7 @@ private fun BatteryMonitorScreen(
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val haptic = LocalHapticFeedback.current
+    val locale = LocalConfiguration.current.locales[0]
     var dropdownExpanded by remember { mutableStateOf(false) }
 
     AppScaffold(
@@ -246,7 +248,7 @@ private fun BatteryMonitorScreen(
                 val extraInfo = uiState.batteryOverall.extraBatteryInfo
                 val powerWatts = extraInfo.powerInWatt(myDevice.voltage)
                 val powerPercentage = powerWatts.toFloat() / extraInfo.maxWattsChargeInput
-                val powerText = String.format(Locale.getDefault(), "%.1f", powerWatts)
+                val powerText = String.format(locale, "%.1f", powerWatts)
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -284,7 +286,7 @@ private fun BatteryMonitorScreen(
                 val isFahrenheit = uiState.temperatureUnit == MyDevice.Temperature.TemperatureUnit.FAHRENHEIT
                 val tempCelsius = myDevice.temperature.temperature
                 val displayTemp = if (isFahrenheit) (tempCelsius * 1.8f) + 32f else tempCelsius
-                val tempValue = String.format(Locale.getDefault(), "%.1f", displayTemp)
+                val tempValue = String.format(locale, "%.1f", displayTemp)
                 val tempUnit = if (isFahrenheit) "°F" else "°C"
 
                 val temperatureSeries = remember(uiState.chartTrackingData.temperatures, uiState.temperatureUnit) {
@@ -297,7 +299,7 @@ private fun BatteryMonitorScreen(
                 val voltageSeries = remember(uiState.chartTrackingData.voltages) {
                     uiState.chartTrackingData.voltages.toPersistentList()
                 }
-                val voltageText = String.format(Locale.getDefault(), "%.2f", myDevice.voltage)
+                val voltageText = String.format(locale, "%.2f", myDevice.voltage)
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

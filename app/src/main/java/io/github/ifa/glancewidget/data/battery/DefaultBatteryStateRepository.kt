@@ -56,14 +56,11 @@ class DefaultBatteryStateRepository(
             Log.e(TAG, "extraBatteryFlow: ${e.message}")
             ExtraBatteryInfo()
         }
-        // Window lives inside flow{} so every collector gets its own, fresh window.
         val recentCurrents = ArrayDeque<Int>()
         emitAll(
             batteryDataStore.getExtraBatteryInformation(default).conflate().map { info ->
                 recentCurrents.addLast(info.chargeCurrent)
                 if (recentCurrents.size > CURRENT_SMOOTHING_WINDOW) recentCurrents.removeFirst()
-                // Only the noisy instantaneous current is smoothed. Charge counter and
-                // capacities are passed through untouched so they match the system value.
                 info.copy(chargeCurrent = recentCurrents.average().toInt())
             }
         )
@@ -106,7 +103,6 @@ class DefaultBatteryStateRepository(
         context.batteryWidgetStore.setObject(BATTERY_PREFERENCES, batteryData)
     }
 
-    /** Read-modify-write in ONE DataStore transaction so concurrent writers can't clobber each other. */
     override suspend fun updateBatteryData(transform: (BatteryData) -> BatteryData) {
         context.batteryWidgetStore.edit { prefs ->
             val current = fromJson<BatteryData>(prefs[BATTERY_PREFERENCES]) ?: BatteryData.initial()
@@ -171,7 +167,6 @@ class DefaultBatteryStateRepository(
     }
 
     override suspend fun setMyDevice(myDevice: MyDevice) {
-        // An empty/placeholder Intent must never overwrite a real reading.
         if (!myDevice.hasValidReading) return
         updateBatteryData { it.copy(myDevice = myDevice) }
     }

@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -136,8 +137,9 @@ internal fun ChartDetailScreen(
     } else {
         "V"
     }
+    val locale = LocalConfiguration.current.locales[0]
     val valueFormat = if (isTemperature) "%.1f" else "%.2f"
-    val displayValue = String.format(Locale.getDefault(), valueFormat, currentValue)
+    val displayValue = String.format(locale, valueFormat, currentValue)
 
     val rawValues = remember(uiState.chartRecord, isTemperature, isFahrenheit) {
         if (isTemperature) {
@@ -338,7 +340,7 @@ internal fun ChartDetailScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = String.format(Locale.getDefault(), valueFormat, minVal) + unitText,
+                            text = String.format(locale, valueFormat, minVal) + unitText,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -354,7 +356,7 @@ internal fun ChartDetailScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = String.format(Locale.getDefault(), valueFormat, avgVal) + unitText,
+                            text = String.format(locale, valueFormat, avgVal) + unitText,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -370,7 +372,7 @@ internal fun ChartDetailScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = String.format(Locale.getDefault(), valueFormat, maxVal) + unitText,
+                            text = String.format(locale, valueFormat, maxVal) + unitText,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface

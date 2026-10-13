@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import io.github.ifa.glancewidget.model.wrapper.PowerDetails
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -98,8 +101,8 @@ fun WattsDetailScreen(
 @Composable
 internal fun WattsDetailScreen(
     uiState: WattsDetailViewModel.WattsDetailUiState,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     snackbarHostState: SnackbarHostState,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
     onNavigationIconClick: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -119,7 +122,7 @@ internal fun WattsDetailScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.ArrowBackIosNew,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(id = R.string.back),
                         )
                     }
                 },
@@ -134,34 +137,48 @@ internal fun WattsDetailScreen(
                 .padding(innerPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val sharedModifier = if (sharedTransitionScope != null) {
+            val sharedModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                 with(sharedTransitionScope) {
                     Modifier
-                        .padding(16.dp)
+                        .padding(horizontal = Spacing.screenHorizontal, vertical = Spacing.m)
                         .sharedElement(
                             sharedContentState = rememberSharedContentState(key = WattsDetailDestination.STATE_KEY),
                             animatedVisibilityScope = animatedVisibilityScope,
                         )
                 }
             } else {
-                Modifier.padding(16.dp)
+                Modifier.padding(horizontal = Spacing.screenHorizontal, vertical = Spacing.m)
             }
 
             Box(
                 modifier = sharedModifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainer),
+                    .clip(AppShape.card)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow),
                 contentAlignment = Alignment.Center
             ) {
                 WattsMonitor(
                     modifier = Modifier
-                        .padding(24.dp)
+                        .padding(Spacing.l)
                         .size(240.dp),
                     power = uiState.details.power,
                     powerPercentage = uiState.details.powerPercentage
                 )
             }
         }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun WattsDetailScreenPreview() {
+    MaterialTheme {
+        WattsDetailScreen(
+            uiState = WattsDetailViewModel.WattsDetailUiState(
+                details = PowerDetails(power = 18.5f, powerPercentage = 0.65f)
+            ),
+            snackbarHostState = remember { SnackbarHostState() },
+            onNavigationIconClick = {}
+        )
     }
 }

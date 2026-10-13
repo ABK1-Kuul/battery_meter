@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
@@ -79,7 +80,8 @@ fun VicoDetailLineChart(
         minWidth = TextComponent.MinWidth.fixed(24f),
     )
 
-    val timeFormat = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val locale = LocalConfiguration.current.locales[0]
+    val timeFormat = remember(locale) { SimpleDateFormat("HH:mm", locale) }
     val bottomFormatter = remember(timestamps, timeFormat) {
         object : CartesianValueFormatter {
             override fun format(
