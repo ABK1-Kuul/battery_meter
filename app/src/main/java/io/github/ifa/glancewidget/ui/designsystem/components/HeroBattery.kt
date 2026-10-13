@@ -116,9 +116,9 @@ fun HeroBattery(
 
             if (chips.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(Spacing.m))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.s),
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     chips.forEach { chip ->

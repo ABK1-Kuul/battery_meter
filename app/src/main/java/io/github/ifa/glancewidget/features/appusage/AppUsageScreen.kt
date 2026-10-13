@@ -36,6 +36,8 @@ import io.github.ifa.glancewidget.ui.designsystem.components.AppScaffold
 import io.github.ifa.glancewidget.ui.designsystem.components.InfoBanner
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.gravity.gravityItem
+import io.github.ifa.glancewidget.ui.gravity.pillAvoidance
 import io.github.ifa.glancewidget.utils.combinePadding
 
 const val appUsageScreenRoute = "app_usage_screen_route"
@@ -125,6 +127,8 @@ private fun AppUsageScreenContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(Spacing.l)
+                        .pillAvoidance()
+                        .gravityItem("usage_banner")
                 )
             }
         }

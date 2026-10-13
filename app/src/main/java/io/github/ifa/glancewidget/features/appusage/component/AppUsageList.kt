@@ -28,6 +28,8 @@ import io.github.ifa.glancewidget.domain.UsageStatsWrapper
 import io.github.ifa.glancewidget.features.appusage.AppUsageScreenUiState
 import io.github.ifa.glancewidget.ui.component.SelectableChips
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.gravity.gravityItem
+import io.github.ifa.glancewidget.ui.gravity.pillAvoidance
 
 fun Long.formatDuration(): String {
     val totalSeconds = this / 1000
@@ -100,7 +102,9 @@ fun AppUsageList(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
-                        .padding(horizontal = Spacing.l, vertical = Spacing.s),
+                        .padding(horizontal = Spacing.l, vertical = Spacing.s)
+                        .pillAvoidance()
+                        .gravityItem("usage_chart"),
                     appUsageStats = appUsageStats.take(4)
                 )
             }
@@ -128,11 +132,14 @@ fun AppUsageList(
                 appIcon = appUsage.appIcon,
                 usageTime = usage,
                 progress = progress,
-                modifier = Modifier.animateItem(
-                    fadeInSpec = tween(500),
-                    fadeOutSpec = tween(500),
-                    placementSpec = tween(500),
-                ),
+                modifier = Modifier
+                    .pillAvoidance()
+                    .gravityItem("usage_${appUsage.usageStats?.packageName}")
+                    .animateItem(
+                        fadeInSpec = tween(500),
+                        fadeOutSpec = tween(500),
+                        placementSpec = tween(500),
+                    ),
                 onAppClick = {
                     onAppUsageClick(appUsage.usageStats?.packageName.orEmpty())
                 }

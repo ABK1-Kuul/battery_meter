@@ -31,6 +31,7 @@ import io.github.ifa.glancewidget.ui.designsystem.components.AppScaffold
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import io.github.ifa.glancewidget.ui.gravity.gravityItem
+import io.github.ifa.glancewidget.ui.gravity.pillAvoidance
 
 const val healthScreenRoute = "health_screen_route"
 
@@ -78,7 +79,9 @@ private fun HealthScreen(
             item {
                 BatteryExtraInformation(
                     batteryDataWrapper = uiState.batteryOverall,
-                    modifier = Modifier.gravityItem("health_extra")
+                    modifier = Modifier
+                        .pillAvoidance()
+                        .gravityItem("health_extra")
                 )
             }
         }

@@ -84,6 +84,7 @@ import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import io.github.ifa.glancewidget.ui.gravity.gravityItem
+import io.github.ifa.glancewidget.ui.gravity.pillAvoidance
 import io.github.ifa.glancewidget.ui.model.asString
 import io.github.ifa.glancewidget.ui.model.toUiModel
 import io.github.ifa.glancewidget.utils.addWidget
@@ -227,7 +228,9 @@ private fun BatteryMonitorScreen(
                         text = stringResource(id = R.string.measurement_in_progress_description),
                         icon = Icons.Rounded.Info,
                         progress = uiState.measurementProgress,
-                        modifier = Modifier.gravityItem("banner")
+                        modifier = Modifier
+                            .pillAvoidance()
+                            .gravityItem("banner")
                     )
                 }
             }
@@ -242,7 +245,9 @@ private fun BatteryMonitorScreen(
                 HeroBattery(
                     model = heroModel,
                     chips = heroChips,
-                    modifier = Modifier.gravityItem("hero")
+                    modifier = Modifier
+                        .pillAvoidance()
+                        .gravityItem("hero")
                 )
             }
 
@@ -256,6 +261,7 @@ private fun BatteryMonitorScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .pillAvoidance()
                         .gravityItem("power_current"),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.m)
                 ) {
@@ -309,6 +315,7 @@ private fun BatteryMonitorScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .pillAvoidance()
                         .gravityItem("temp_voltage"),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.m)
                 ) {
@@ -356,6 +363,7 @@ private fun BatteryMonitorScreen(
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .pillAvoidance()
                             .gravityItem("device_${device.address}"),
                         shape = AppShape.card,
                         color = MaterialTheme.colorScheme.surfaceContainerLow

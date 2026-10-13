@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -64,6 +65,8 @@ import io.github.ifa.glancewidget.ui.designsystem.components.SettingsGroup
 import io.github.ifa.glancewidget.ui.designsystem.components.SettingsRow
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.gravity.gravityItem
+import io.github.ifa.glancewidget.ui.gravity.pillAvoidance
 import io.github.ifa.glancewidget.utils.combinePadding
 import io.github.ifa.glancewidget.utils.isAppCompatLocaleDeprecated
 import io.github.ifa.glancewidget.utils.navigateUrl
@@ -222,7 +225,13 @@ internal fun SettingsScreenLayout(
             verticalArrangement = Arrangement.spacedBy(Spacing.l),
         ) {
             item {
-                SettingsGroup(title = stringResource(R.string.appearance)) {
+                SettingsGroup(
+                    title = stringResource(R.string.appearance),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pillAvoidance()
+                        .gravityItem("settings_appearance")
+                ) {
                     if (!isAppCompatLocaleDeprecated()) {
                         LanguageSetting(onSelectLanguage = onSelectLanguage, uiState = uiState)
                         HorizontalDivider(
@@ -251,7 +260,13 @@ internal fun SettingsScreenLayout(
                 }
             }
             item {
-                SettingsGroup(title = stringResource(R.string.notification_settings)) {
+                SettingsGroup(
+                    title = stringResource(R.string.notification_settings),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pillAvoidance()
+                        .gravityItem("settings_notifications")
+                ) {
                     SettingsRow(
                         title = stringResource(R.string.widget_tab),
                         subtitle = stringResource(R.string.notification_settings_desc),
@@ -268,7 +283,13 @@ internal fun SettingsScreenLayout(
                 }
             }
             item {
-                SettingsGroup(title = stringResource(R.string.about_tab)) {
+                SettingsGroup(
+                    title = stringResource(R.string.about_tab),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pillAvoidance()
+                        .gravityItem("settings_about")
+                ) {
                     SettingsRow(
                         title = stringResource(R.string.about_tab),
                         subtitle = BuildConfig.VERSION_NAME,
