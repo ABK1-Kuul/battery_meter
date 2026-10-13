@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.12.1" type="incidents">
+
+    <incident
+        id="AnnotateVersionCheck"
+        severity="warning"
+        message="This method should be annotated with `@ChecksSdkIntAtLeast(api=Build.VERSION_CODES.S)`">
+        <annotate
+            description="Annotate with @ChecksSdkIntAtLeast"
+            source="@androidx.annotation.ChecksSdkIntAtLeast(api=Build.VERSION_CODES.S)"
+            replace="true">
+            <range
+                file="${:material3color*debug*MAIN*sourceProvider*0*javaDir*0}/com/dotsdev/material3color/DynamicColorUtils.kt"
+                startOffset="61"
+                endOffset="161"/>
+        </annotate>
+        <location
+            file="${:material3color*debug*MAIN*sourceProvider*0*javaDir*0}/com/dotsdev/material3color/DynamicColorUtils.kt"
+            line="5"
+            column="5"
+            startOffset="65"
+            endLine="5"
+            endColumn="28"
+            endOffset="88"/>
+    </incident>
+
+</incidents>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.12.1" type="partial_results">
+    <map id="UnusedResources">
+        <entry
+            name="model"
+            string=""/>
+    </map>
+    <map id="_ChecksSdkIntAtLeast">
+        <entry
+            name="com.dotsdev.material3color.DynamicColorUtilsKt#isSupportedDynamicColor()"
+            string="api=31"/>
+    </map>
+
+</incidents>
