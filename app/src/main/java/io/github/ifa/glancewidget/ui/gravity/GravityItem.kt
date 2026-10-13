@@ -22,7 +22,9 @@ fun Modifier.gravityItem(id: Any? = null): Modifier = composed {
 
     this
         .onGloballyPositioned { coordinates ->
-            itemState.center = coordinates.boundsInRoot().center
+            if (coordinates.isAttached) {
+                itemState.center = coordinates.boundsInRoot().center
+            }
         }
         .graphicsLayer {
             translationX = itemState.translationX.value

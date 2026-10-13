@@ -49,7 +49,9 @@ fun GravityNavPill(
     Surface(
         modifier = modifier
             .onGloballyPositioned { coordinates ->
-                onBoundsChanged(coordinates.boundsInRoot())
+                if (coordinates.isAttached) {
+                    onBoundsChanged(coordinates.boundsInRoot())
+                }
             }
             .graphicsLayer {
                 scaleX = scale

@@ -17,6 +17,7 @@ import androidx.compose.ui.node.currentValueOf
 import androidx.compose.ui.node.invalidateMeasurement
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -45,6 +46,7 @@ class PillAvoidanceNode :
     private val animInset = Animatable(0f)
 
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
+        if (!isAttached || !coordinates.isAttached) return
         val field = currentValueOf(LocalGravityField)
         val pill = field.pillBounds.value
         val density = currentValueOf(LocalDensity)
@@ -87,17 +89,19 @@ class PillAvoidanceNode :
     }
 
     private fun updateInset(newTarget: Float, reduceMotion: Boolean, thresholdPx: Float) {
+        if (!isAttached) return
         if (reduceMotion) {
             animJob?.cancel()
             if (abs(newTarget - appliedInset) >= thresholdPx || (newTarget == 0f && appliedInset != 0f)) {
                 appliedInset = newTarget
-                invalidateMeasurement()
+                if (isAttached) {
+                    invalidateMeasurement()
+                }
             }
             return
         }
 
         animJob?.cancel()
-        if (!isAttached) return
         animJob = coroutineScope.launch {
             animInset.snapTo(appliedInset)
             animInset.animateTo(
@@ -107,11 +111,13 @@ class PillAvoidanceNode :
                     stiffness = Spring.StiffnessMediumLow
                 )
             ) {
+                if (!isAttached) return@animateTo
                 if (abs(value - appliedInset) >= thresholdPx) {
                     appliedInset = value
                     invalidateMeasurement()
                 }
             }
+            if (!isAttached) return@launch
             if (appliedInset != animInset.value) {
                 appliedInset = animInset.value
                 invalidateMeasurement()
@@ -123,10 +129,21 @@ class PillAvoidanceNode :
         measurable: Measurable,
         constraints: Constraints
     ): MeasureResult {
-        val insetPx = appliedInset.roundToInt()
-        val newMaxWidth = (constraints.maxWidth - insetPx).coerceAtLeast(0)
-        val placeable = measurable.measure(constraints.copy(maxWidth = newMaxWidth))
-        return layout(placeable.width, placeable.height) {
+        val insetPx = appliedInset.roundToInt().coerceAtLeast(0)
+        val childConstraints = if (constraints.hasBoundedWidth && insetPx > 0) {
+            val newMaxWidth = (constraints.maxWidth - insetPx).coerceAtLeast(0)
+            val newMinWidth = constraints.minWidth.coerceAtMost(newMaxWidth)
+            constraints.copy(minWidth = newMinWidth, maxWidth = newMaxWidth)
+        } else {
+            constraints
+        }
+        val placeable = measurable.measure(childConstraints)
+        val totalWidth = if (constraints.hasBoundedWidth && insetPx > 0) {
+            constraints.constrainWidth(placeable.width + insetPx)
+        } else {
+            placeable.width
+        }
+        return layout(totalWidth, placeable.height) {
             placeable.placeRelative(0, 0)
         }
     }
