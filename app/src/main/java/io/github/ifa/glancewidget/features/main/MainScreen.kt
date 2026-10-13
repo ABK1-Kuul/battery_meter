@@ -31,6 +31,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import android.provider.Settings
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
@@ -41,6 +46,10 @@ import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOW
 import io.github.ifa.glancewidget.features.battery.batteryMonitorScreenRoute
 import io.github.ifa.glancewidget.ui.designsystem.components.GravityNavPill
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.gravity.GravityController
+import io.github.ifa.glancewidget.ui.gravity.GravityFieldContext
+import io.github.ifa.glancewidget.ui.gravity.LocalGravityController
+import io.github.ifa.glancewidget.ui.gravity.LocalGravityField
 import io.github.ifa.glancewidget.ui.gravity.PillEndMargin
 import io.github.ifa.glancewidget.ui.localcomposition.LocalAnimatedVisibilityScope
 
@@ -71,66 +80,104 @@ fun MainScreen(
         windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        containerColor = colorScheme.surface
-    ) { contentPadding ->
-        if (isWide) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding)
-            ) {
-                MainNavigationRail(
-                    navController = mainTabNavController,
-                    colorScheme = colorScheme
-                )
-                NavHost(
-                    navController = mainTabNavController,
-                    startDestination = batteryMonitorScreenRoute,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    enterTransition = { EnterTransition.None },
-                    exitTransition = { ExitTransition.None },
-                ) {
-                    mainNavGraph(PaddingValues(), snackbarHostState)
-                }
-            }
-        } else {
-            val navBackStackEntry by mainTabNavController.currentBackStackEntryAsState()
-            val currentRoute = navBackStackEntry?.destination?.route
-            val currentTab = MainScreenTab.entries.find { it.route == currentRoute } ?: MainScreenTab.Widget
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val pillBoundsState = remember { mutableStateOf(Rect.Zero) }
+    val reduceMotion = remember(context) {
+        try {
+            Settings.Global.getFloat(
+                context.contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f
+            ) == 0f
+        } catch (e: Exception) {
+            false
+        }
+    }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding)
-            ) {
-                NavHost(
-                    navController = mainTabNavController,
-                    startDestination = batteryMonitorScreenRoute,
-                    modifier = Modifier.fillMaxSize(),
-                    enterTransition = { EnterTransition.None },
-                    exitTransition = { ExitTransition.None },
-                ) {
-                    mainNavGraph(contentPadding, snackbarHostState)
-                }
-                GravityNavPill(
-                    selectedTab = currentTab,
-                    onTabSelected = { tab ->
-                        mainTabNavController.navigate(tab.route) {
-                            mainTabNavController.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) { saveState = true }
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
+    val gravityController = remember(coroutineScope, reduceMotion) {
+        GravityController(
+            scope = coroutineScope,
+            pillBoundsProvider = { pillBoundsState.value },
+            reduceMotionProvider = { reduceMotion }
+        )
+    }
+
+    CompositionLocalProvider(
+        LocalGravityField provides GravityFieldContext(
+            pillBounds = pillBoundsState,
+            reduceMotion = reduceMotion,
+            controller = gravityController
+        ),
+        LocalGravityController provides gravityController
+    ) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            containerColor = colorScheme.surface
+        ) { contentPadding ->
+            if (isWide) {
+                Row(
                     modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = PillEndMargin)
-                )
+                        .fillMaxSize()
+                        .padding(contentPadding)
+                ) {
+                    MainNavigationRail(
+                        navController = mainTabNavController,
+                        colorScheme = colorScheme
+                    )
+                    NavHost(
+                        navController = mainTabNavController,
+                        startDestination = batteryMonitorScreenRoute,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        enterTransition = { EnterTransition.None },
+                        exitTransition = { ExitTransition.None },
+                    ) {
+                        mainNavGraph(PaddingValues(), snackbarHostState)
+                    }
+                }
+            } else {
+                val navBackStackEntry by mainTabNavController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+                val currentTab = MainScreenTab.entries.find { it.route == currentRoute } ?: MainScreenTab.Widget
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPadding)
+                ) {
+                    NavHost(
+                        navController = mainTabNavController,
+                        startDestination = batteryMonitorScreenRoute,
+                        modifier = Modifier.fillMaxSize(),
+                        enterTransition = { EnterTransition.None },
+                        exitTransition = { ExitTransition.None },
+                    ) {
+                        mainNavGraph(contentPadding, snackbarHostState)
+                    }
+                    GravityNavPill(
+                        selectedTab = currentTab,
+                        onTabSelected = { tab ->
+                            if (tab.route != currentRoute) {
+                                gravityController.requestNavigate {
+                                    mainTabNavController.navigate(tab.route) {
+                                        mainTabNavController.graph.startDestinationRoute?.let { route ->
+                                            popUpTo(route) { saveState = true }
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            }
+                        },
+                        scale = gravityController.pillScale.value,
+                        onBoundsChanged = { pillBoundsState.value = it },
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = PillEndMargin)
+                    )
+                }
             }
         }
     }

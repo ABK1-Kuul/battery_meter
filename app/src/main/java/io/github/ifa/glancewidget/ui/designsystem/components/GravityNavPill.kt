@@ -27,6 +27,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,10 +42,19 @@ import io.github.ifa.glancewidget.ui.gravity.PillWidth
 fun GravityNavPill(
     selectedTab: MainScreenTab,
     onTabSelected: (MainScreenTab) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    scale: Float = 1f,
+    onBoundsChanged: (Rect) -> Unit = {}
 ) {
     Surface(
         modifier = modifier
+            .onGloballyPositioned { coordinates ->
+                onBoundsChanged(coordinates.boundsInRoot())
+            }
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .width(PillWidth)
             .wrapContentHeight(),
         shape = CircleShape,

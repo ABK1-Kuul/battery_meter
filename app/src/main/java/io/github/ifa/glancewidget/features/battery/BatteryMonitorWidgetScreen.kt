@@ -83,6 +83,7 @@ import io.github.ifa.glancewidget.ui.designsystem.components.SettingsRow
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.gravity.gravityItem
 import io.github.ifa.glancewidget.ui.model.asString
 import io.github.ifa.glancewidget.ui.model.toUiModel
 import io.github.ifa.glancewidget.utils.addWidget
@@ -225,7 +226,8 @@ private fun BatteryMonitorScreen(
                     InfoBanner(
                         text = stringResource(id = R.string.measurement_in_progress_description),
                         icon = Icons.Rounded.Info,
-                        progress = uiState.measurementProgress
+                        progress = uiState.measurementProgress,
+                        modifier = Modifier.gravityItem("banner")
                     )
                 }
             }
@@ -239,7 +241,8 @@ private fun BatteryMonitorScreen(
                 )
                 HeroBattery(
                     model = heroModel,
-                    chips = heroChips
+                    chips = heroChips,
+                    modifier = Modifier.gravityItem("hero")
                 )
             }
 
@@ -251,7 +254,9 @@ private fun BatteryMonitorScreen(
                 val powerText = String.format(locale, "%.1f", powerWatts)
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .gravityItem("power_current"),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.m)
                 ) {
                     MetricTile(
@@ -302,7 +307,9 @@ private fun BatteryMonitorScreen(
                 val voltageText = String.format(locale, "%.2f", myDevice.voltage)
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .gravityItem("temp_voltage"),
                     horizontalArrangement = Arrangement.spacedBy(Spacing.m)
                 ) {
                     MetricTile(
@@ -347,7 +354,9 @@ private fun BatteryMonitorScreen(
                 }
                 items(connectedDevices, key = { it.address }) { device ->
                     Surface(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .gravityItem("device_${device.address}"),
                         shape = AppShape.card,
                         color = MaterialTheme.colorScheme.surfaceContainerLow
                     ) {

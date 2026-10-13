@@ -30,6 +30,7 @@ import io.github.ifa.glancewidget.model.wrapper.PowerDetails
 import io.github.ifa.glancewidget.ui.designsystem.components.AppScaffold
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.gravity.gravityItem
 
 const val healthScreenRoute = "health_screen_route"
 
@@ -76,7 +77,8 @@ private fun HealthScreen(
         ) {
             item {
                 BatteryExtraInformation(
-                    batteryDataWrapper = uiState.batteryOverall
+                    batteryDataWrapper = uiState.batteryOverall,
+                    modifier = Modifier.gravityItem("health_extra")
                 )
             }
         }
