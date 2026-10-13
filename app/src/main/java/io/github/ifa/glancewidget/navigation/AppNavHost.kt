@@ -13,6 +13,8 @@ import io.github.ifa.glancewidget.features.main.mainTabScreens
 import io.github.ifa.glancewidget.features.settings.settingsScreen
 import io.github.ifa.glancewidget.features.battery.wattsmonitor.navigateToWattsDetailScreen
 import io.github.ifa.glancewidget.features.battery.wattsmonitor.wattsDetailScreen
+import io.github.ifa.glancewidget.features.battery.detail.chartDetailScreen
+import io.github.ifa.glancewidget.features.battery.detail.navigateToChartDetailScreen
 import io.github.ifa.glancewidget.features.battery.batteryMonitorScreen
 import io.github.ifa.glancewidget.features.health.healthScreen
 import io.github.ifa.glancewidget.features.settings.inquiry.inquiryScreen
@@ -36,6 +38,7 @@ fun AppNavHost(
                 mainScreen(navController)
                 paywallPremiumScreen(onNavigationIconClick = navController::popBackStack)
                 wattsDetailScreen(onNavigationIconClick = navController::popBackStack)
+                chartDetailScreen(onNavigationIconClick = navController::popBackStack)
                 inquiryScreen(onNavigationIconClick = navController::popBackStack)
             }
         }
@@ -50,6 +53,7 @@ private fun NavGraphBuilder.mainScreen(
             contentPadding = contentPadding,
             snackbarHostState = snackbarHostState,
             onOpenWattsDetailScreen = navController::navigateToWattsDetailScreen,
+            onOpenChartDetailScreen = navController::navigateToChartDetailScreen,
             onOpenInquiryScreen = navController::navigateToInquiryScreen
         )
         healthScreen(contentPadding = contentPadding)

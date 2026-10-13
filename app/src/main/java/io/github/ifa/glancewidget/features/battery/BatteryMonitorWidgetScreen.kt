@@ -60,6 +60,7 @@ import io.github.ifa.glancewidget.MainActivity
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.features.battery.component.AddWidgetBottomSheet
 import io.github.ifa.glancewidget.features.battery.component.DropdownMenu
+import io.github.ifa.glancewidget.features.battery.detail.ChartDetailDestination
 import io.github.ifa.glancewidget.features.battery.wattsmonitor.WattsDetailDestination
 import io.github.ifa.glancewidget.glance.battery.BatteryWidgetReceiver.Companion.PINNED_WIDGET_DEFAULT_ID
 import io.github.ifa.glancewidget.model.AddWidgetParams
@@ -96,11 +97,13 @@ fun NavGraphBuilder.batteryMonitorScreen(
     contentPadding: PaddingValues,
     snackbarHostState: SnackbarHostState,
     onOpenWattsDetailScreen: (WattsDetailDestination) -> Unit,
+    onOpenChartDetailScreen: (ChartDetailDestination) -> Unit = {},
     onOpenInquiryScreen: () -> Unit,
 ) {
     composable(batteryMonitorScreenRoute) {
         BatteryMonitorScreen(
             onOpenWattsDetailScreen = onOpenWattsDetailScreen,
+            onOpenChartDetailScreen = onOpenChartDetailScreen,
             onOpenInquiryScreen = onOpenInquiryScreen,
             snackbarHostState = snackbarHostState,
             contentPadding = contentPadding,
@@ -114,6 +117,7 @@ internal fun BatteryMonitorScreen(
     contentPadding: PaddingValues,
     snackbarHostState: SnackbarHostState,
     onOpenWattsDetailScreen: (WattsDetailDestination) -> Unit,
+    onOpenChartDetailScreen: (ChartDetailDestination) -> Unit = {},
     onOpenInquiryScreen: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -132,6 +136,7 @@ internal fun BatteryMonitorScreen(
         contentPadding = contentPadding,
         isShowAddWidgetBottomSheet = showBottomSheet,
         onOpenWattsDetailScreen = onOpenWattsDetailScreen,
+        onOpenChartDetailScreen = onOpenChartDetailScreen,
         onDisMissBottomSheet = viewModel::hideBottomSheet,
         onClickAddWidget = { params ->
             if (uiState.setupWidgetId == PINNED_WIDGET_DEFAULT_ID) {
@@ -170,6 +175,7 @@ private fun BatteryMonitorScreen(
     contentPadding: PaddingValues,
     isShowAddWidgetBottomSheet: Boolean = false,
     onOpenWattsDetailScreen: (WattsDetailDestination) -> Unit,
+    onOpenChartDetailScreen: (ChartDetailDestination) -> Unit = {},
     onDisMissBottomSheet: () -> Unit = {},
     onClickAddWidget: (AddWidgetParams) -> Unit,
     onRequestPiningWidget: () -> Unit = {},
@@ -304,7 +310,14 @@ private fun BatteryMonitorScreen(
                         icon = Icons.Rounded.Thermostat,
                         modifier = Modifier.weight(1f),
                         series = temperatureSeries,
-                        accent = MaterialTheme.colorScheme.secondary
+                        accent = MaterialTheme.colorScheme.secondary,
+                        onClick = {
+                            onOpenChartDetailScreen(
+                                ChartDetailDestination(
+                                    metricType = ChartDetailDestination.METRIC_TEMPERATURE
+                                )
+                            )
+                        }
                     )
                     MetricTile(
                         label = stringResource(id = R.string.voltage),
@@ -313,7 +326,14 @@ private fun BatteryMonitorScreen(
                         icon = Icons.Rounded.BatteryChargingFull,
                         modifier = Modifier.weight(1f),
                         series = voltageSeries,
-                        accent = MaterialTheme.colorScheme.primary
+                        accent = MaterialTheme.colorScheme.primary,
+                        onClick = {
+                            onOpenChartDetailScreen(
+                                ChartDetailDestination(
+                                    metricType = ChartDetailDestination.METRIC_VOLTAGE
+                                )
+                            )
+                        }
                     )
                 }
             }
@@ -439,6 +459,7 @@ fun BatteryMonitorScreenPreview() {
             contentPadding = PaddingValues(0.dp),
             isShowAddWidgetBottomSheet = false,
             onOpenWattsDetailScreen = {},
+            onOpenChartDetailScreen = {},
             onClickAddWidget = {},
             onForceReloadClick = {},
             onOpenInquiryScreen = {}
