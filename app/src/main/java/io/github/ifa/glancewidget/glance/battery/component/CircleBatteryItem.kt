@@ -2,18 +2,14 @@ package io.github.ifa.glancewidget.glance.battery.component
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.PorterDuff
 import android.graphics.RectF
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.createBitmap
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -25,7 +21,6 @@ import androidx.glance.action.clickable
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
-import androidx.glance.layout.ContentScale
 import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
@@ -37,7 +32,7 @@ import androidx.glance.unit.ColorProvider
 import io.github.ifa.glancewidget.MainActivity
 import io.github.ifa.glancewidget.glance.battery.utils.GlanceCanvas
 import io.github.ifa.glancewidget.model.DeviceType
-import io.github.ifa.glancewidget.ui.theme.googleFlex400
+import io.github.ifa.glancewidget.ui.model.BatteryTone
 import io.github.ifa.glancewidget.utils.Constants.ANDROID_SETTING_PACKAGE
 import io.github.ifa.glancewidget.utils.Constants.BLUETOOTH_SETTING_CLASS
 
@@ -47,16 +42,21 @@ fun CircleBatteryItem(
     deviceType: DeviceType,
     percent: Int,
     isCharging: Boolean,
+    tone: BatteryTone = BatteryTone.Normal,
     scaleTextSize: Float = 1.0f,
     transparency: Float = 1f,
     modifier: GlanceModifier = GlanceModifier,
 ) {
     val context = LocalContext.current
     val backgroundColor = GlanceTheme.colors.secondaryContainer
-    val widgetBackgroundColor = ColorProvider(
-        GlanceTheme.colors.widgetBackground.getColor(context).copy(alpha = transparency)
-    )
-    val foregroundColor = GlanceTheme.colors.inversePrimary
+
+    val toneColor = when (tone) {
+        BatteryTone.Hot, BatteryTone.Low -> GlanceTheme.colors.error
+        BatteryTone.Charging -> GlanceTheme.colors.tertiary
+        BatteryTone.Full, BatteryTone.Cold -> GlanceTheme.colors.secondary
+        BatteryTone.Normal -> GlanceTheme.colors.primary
+    }
+
     val onBackgroundColor = GlanceTheme.colors.primary
     val iconColor = onBackgroundColor.getColor(context)
         .copy(alpha = if (deviceType == DeviceType.OTHER) 0.2f else 1.0f)
@@ -99,7 +99,7 @@ fun CircleBatteryItem(
                 minOf(percent / 100f * totalSweep, totalSweep),
                 false,
                 Paint().apply {
-                    color = foregroundColor.getColor(context).toArgb()
+                    color = toneColor.getColor(context).toArgb()
                     style = Paint.Style.STROKE
                     isAntiAlias = true
                     strokeWidth = 60f
@@ -122,7 +122,7 @@ fun CircleBatteryItem(
                 path.close()
 
                 val paint = Paint().apply {
-                    color = onBackgroundColor.getColor(context).toArgb()
+                    color = toneColor.getColor(context).toArgb()
                     isAntiAlias = true
                     style = Paint.Style.FILL
                     pathEffect = android.graphics.CornerPathEffect(6f)
@@ -138,16 +138,12 @@ fun CircleBatteryItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val scale = if (percent > 0) scaleTextSize else scaleTextSize * 1.4f
-            val textSize = if (deviceType == DeviceType.PHONE) 16 else 10
+            val textSize = if (deviceType == DeviceType.PHONE) 20 else 12
             if (percent > 0) {
                 Text(
                     text = percent.toString(),
                     style = TextStyle(
-                        color = if (transparency == 0f) {
-                            GlanceTheme.colors.inversePrimary
-                        } else {
-                            GlanceTheme.colors.primary
-                        },
+                        color = toneColor,
                         fontSize = (textSize * scaleTextSize).sp,
                         fontFamily = FontFamily("monospace")
                     ),
@@ -162,6 +158,5 @@ fun CircleBatteryItem(
                 colorFilter = ColorFilter.tint(ColorProvider(iconColor))
             )
         }
-
     }
 }

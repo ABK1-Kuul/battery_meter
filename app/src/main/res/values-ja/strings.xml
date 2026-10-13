@@ -118,4 +118,8 @@
     <string name="always_on_display">Always On Display</string>
     <string name="always_on_display_desc">画面上にバッテリーモニターを表示し続けます</string>
     <string name="back">戻る</string>
+    <string name="widget_style_horizontal">横型</string>
+    <string name="widget_style_circle">円形</string>
+    <string name="widget_transparency_opaque">標準</string>
+    <string name="widget_transparency_transparent">透明</string>
 </resources>

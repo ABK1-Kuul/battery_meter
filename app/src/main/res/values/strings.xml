@@ -127,4 +127,8 @@
     <string name="always_on_display">Always On Display</string>
     <string name="always_on_display_desc">Keep battery monitor visible on screen</string>
     <string name="back">Back</string>
+    <string name="widget_style_horizontal">Horizontal</string>
+    <string name="widget_style_circle">Circle</string>
+    <string name="widget_transparency_opaque">Standard</string>
+    <string name="widget_transparency_transparent">Transparent</string>
 </resources>

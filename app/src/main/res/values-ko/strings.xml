@@ -117,4 +117,8 @@
     <string name="always_on_display">Always On Display</string>
     <string name="always_on_display_desc">화면에 배터리 모니터를 계속 표시합니다</string>
     <string name="back">뒤로</string>
+    <string name="widget_style_horizontal">가로형</string>
+    <string name="widget_style_circle">원형</string>
+    <string name="widget_transparency_opaque">표준</string>
+    <string name="widget_transparency_transparent">투명</string>
 </resources>

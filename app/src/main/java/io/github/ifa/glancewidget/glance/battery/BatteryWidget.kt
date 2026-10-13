@@ -110,6 +110,9 @@ class BatteryWidget : GlanceAppWidget() {
     ) {
         val percent = battery?.myDevice?.level ?: 100
         val isCharging = battery?.myDevice?.isCharging == true
+        val temp = battery?.myDevice?.temperature?.temperature ?: 25f
+        val isOverheat = battery?.myDevice?.health == android.os.BatteryManager.BATTERY_HEALTH_OVERHEAT
+        val tone = io.github.ifa.glancewidget.ui.model.resolveBatteryTone(percent, isCharging, temp, isOverheat)
 
         val sizeWidget = remember(setting) {
             setting?.getType() ?: WidgetSetting.Type.Small
@@ -139,7 +142,8 @@ class BatteryWidget : GlanceAppWidget() {
                 isCharging = isCharging,
                 isTransparent = isTransparent,
                 connectedDevice = connectedDevices,
-                sizeWidget = sizeWidget
+                sizeWidget = sizeWidget,
+                tone = tone
             )
 
             WidgetSetting.Style.Circle -> CircleBatteryWidget(
@@ -148,10 +152,9 @@ class BatteryWidget : GlanceAppWidget() {
                 isCharging = isCharging,
                 isTransparent = isTransparent,
                 connectedDevice = connectedDevices,
-                sizeWidget = sizeWidget
+                sizeWidget = sizeWidget,
+                tone = tone
             )
-
-            else -> {}
         }
     }
 

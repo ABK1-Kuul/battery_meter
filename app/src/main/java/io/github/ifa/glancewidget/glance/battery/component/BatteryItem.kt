@@ -29,11 +29,13 @@ import androidx.glance.text.FontFamily
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import androidx.glance.unit.ColorProvider
 import io.github.ifa.glancewidget.MainActivity
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.glance.battery.ui.PixelBatteryTheme
 import io.github.ifa.glancewidget.glance.battery.utils.cornerRadiusCompat
 import io.github.ifa.glancewidget.model.DeviceType
+import io.github.ifa.glancewidget.ui.model.BatteryTone
 import io.github.ifa.glancewidget.utils.Constants.ANDROID_SETTING_PACKAGE
 import io.github.ifa.glancewidget.utils.Constants.BLUETOOTH_SETTING_CLASS
 
@@ -45,7 +47,8 @@ fun BatteryItem(
     percent: Int,
     isCharging: Boolean,
     deviceName: String,
-    fontSizeScale: Int = 14,
+    tone: BatteryTone = BatteryTone.Normal,
+    fontSizeScale: Int = 16,
     modifier: GlanceModifier = GlanceModifier
 ) {
     val action = remember(deviceType) {
@@ -54,6 +57,13 @@ fun BatteryItem(
         } else {
             actionStartActivity(ComponentName(ANDROID_SETTING_PACKAGE, BLUETOOTH_SETTING_CLASS))
         }
+    }
+
+    val toneColor = when (tone) {
+        BatteryTone.Hot, BatteryTone.Low -> GlanceTheme.colors.error
+        BatteryTone.Charging -> GlanceTheme.colors.tertiary
+        BatteryTone.Full, BatteryTone.Cold -> GlanceTheme.colors.secondary
+        BatteryTone.Normal -> GlanceTheme.colors.primary
     }
 
     Box(
@@ -68,7 +78,7 @@ fun BatteryItem(
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 for (i in 0..90 step SUPPORTED_ROW_ELEMENTS) {
-                    Segment(currentSegment = i, percent)
+                    Segment(currentSegment = i, percent = percent, toneColor = toneColor)
                 }
             }
         }
@@ -105,7 +115,7 @@ fun BatteryItem(
                     Text(
                         text = percent.toString(),
                         style = TextStyle(
-                            color = GlanceTheme.colors.primary,
+                            color = toneColor,
                             fontSize = fontSizeScale.sp,
                             fontFamily = FontFamily("monospace")
                         ),
@@ -115,14 +125,13 @@ fun BatteryItem(
                     Text(
                         text = "%",
                         style = TextStyle(
-                            color = GlanceTheme.colors.primary,
-                            fontSize = (fontSizeScale * 0.8).sp
+                            color = toneColor,
+                            fontSize = (fontSizeScale * 0.75).sp
                         ),
                         fontWeight = FontWeight.Bold,
                         modifier = GlanceModifier.padding(end = 4.dp)
                     )
                 }
-
             }
             if (deviceType != DeviceType.PHONE) {
                 Image(
@@ -135,8 +144,8 @@ fun BatteryItem(
 
             if (isCharging) {
                 Box(
-                    modifier = GlanceModifier.size(16.dp)
-                        .cornerRadiusCompat(8, GlanceTheme.colors.primary),
+                    modifier = GlanceModifier.size(18.dp)
+                        .cornerRadiusCompat(9, toneColor),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
@@ -167,13 +176,13 @@ fun Text(
 }
 
 @Composable
-private fun RowScope.Segment(currentSegment: Int, percent: Int) {
+private fun RowScope.Segment(currentSegment: Int, percent: Int, toneColor: ColorProvider) {
     Row(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
         for (i in 1..SUPPORTED_ROW_ELEMENTS) {
             val isFilled = i + currentSegment <= percent
             Spacer(
                 modifier = GlanceModifier.defaultWeight().fillMaxHeight().background(
-                    if (isFilled) GlanceTheme.colors.inversePrimary else GlanceTheme.colors.secondaryContainer
+                    if (isFilled) toneColor else GlanceTheme.colors.secondaryContainer
                 )
             )
         }
@@ -190,6 +199,7 @@ fun BatteryItemPreview() {
             percent = 85,
             isCharging = true,
             deviceName = "Pixel 7 Pro",
+            tone = BatteryTone.Charging,
             modifier = GlanceModifier.size(width = 200.dp, height = 60.dp)
         )
     }

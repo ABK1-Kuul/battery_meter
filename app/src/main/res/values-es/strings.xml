@@ -117,4 +117,8 @@
     <string name="always_on_display">Pantalla siempre activa (AOD)</string>
     <string name="always_on_display_desc">Mantener el monitor de batería visible en pantalla</string>
     <string name="back">Atrás</string>
+    <string name="widget_style_horizontal">Horizontal</string>
+    <string name="widget_style_circle">Circular</string>
+    <string name="widget_transparency_opaque">Estándar</string>
+    <string name="widget_transparency_transparent">Transparente</string>
 </resources>

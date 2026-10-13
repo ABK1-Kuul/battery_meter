@@ -22,6 +22,7 @@ import io.github.ifa.glancewidget.model.BatteryData
 import io.github.ifa.glancewidget.model.BonedDevice
 import io.github.ifa.glancewidget.model.DeviceType
 import io.github.ifa.glancewidget.model.WidgetSetting
+import io.github.ifa.glancewidget.ui.model.BatteryTone
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -32,6 +33,7 @@ fun CircleBatteryWidget(
     isTransparent: Boolean,
     connectedDevice: List<BonedDevice>,
     sizeWidget: WidgetSetting.Type,
+    tone: BatteryTone = BatteryTone.Normal,
 ) {
     val transparent by rememberUpdatedState(newValue = isTransparent)
     val deviceType by remember(battery) {
@@ -66,6 +68,7 @@ fun CircleBatteryWidget(
                 deviceType = deviceType,
                 percent = percent,
                 isCharging = charging,
+                tone = tone,
                 scaleTextSize = scaleTextSize,
                 transparency = if (transparent) 0f else 1f,
                 modifier = GlanceModifier.defaultWeight()
@@ -75,6 +78,7 @@ fun CircleBatteryWidget(
                     deviceType = it.deviceType,
                     percent = it.batteryInPercentage,
                     isCharging = false,
+                    tone = BatteryTone.Normal,
                     scaleTextSize = scaleTextSize,
                     transparency = if (transparent) 0f else 1f,
                     modifier = GlanceModifier.defaultWeight()
@@ -85,15 +89,76 @@ fun CircleBatteryWidget(
 }
 
 @OptIn(ExperimentalGlancePreviewApi::class)
-@Preview(widthDp = 200, heightDp = 400)
+@Preview(widthDp = 100, heightDp = 100)
 @Composable
-fun CircleBatteryWidgetPreview() {
+fun CircleBatteryWidget1x1Preview() {
+    CircleBatteryWidget(
+        battery = null,
+        percent = 70,
+        isCharging = false,
+        isTransparent = false,
+        connectedDevice = emptyList(),
+        sizeWidget = WidgetSetting.Type.Smallest,
+        tone = BatteryTone.Normal
+    )
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 200, heightDp = 100)
+@Composable
+fun CircleBatteryWidget2x1Preview() {
     CircleBatteryWidget(
         battery = null,
         percent = 70,
         isCharging = true,
         isTransparent = false,
-        connectedDevice = listOf(BonedDevice(batteryInPercentage = 39), BonedDevice()),
-        sizeWidget = WidgetSetting.Type.Default
+        connectedDevice = listOf(BonedDevice(batteryInPercentage = 39)),
+        sizeWidget = WidgetSetting.Type.Small,
+        tone = BatteryTone.Charging
+    )
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 350, heightDp = 100)
+@Composable
+fun CircleBatteryWidget4x1Preview() {
+    CircleBatteryWidget(
+        battery = null,
+        percent = 14,
+        isCharging = false,
+        isTransparent = false,
+        connectedDevice = listOf(BonedDevice(batteryInPercentage = 39), BonedDevice(batteryInPercentage = 80)),
+        sizeWidget = WidgetSetting.Type.FullWidex1,
+        tone = BatteryTone.Low
+    )
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 200, heightDp = 200)
+@Composable
+fun CircleBatteryWidget2x2Preview() {
+    CircleBatteryWidget(
+        battery = null,
+        percent = 70,
+        isCharging = false,
+        isTransparent = false,
+        connectedDevice = listOf(BonedDevice(batteryInPercentage = 39)),
+        sizeWidget = WidgetSetting.Type.Square,
+        tone = BatteryTone.Normal
+    )
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 350, heightDp = 350)
+@Composable
+fun CircleBatteryWidget4x4Preview() {
+    CircleBatteryWidget(
+        battery = null,
+        percent = 100,
+        isCharging = true,
+        isTransparent = false,
+        connectedDevice = listOf(BonedDevice(batteryInPercentage = 39), BonedDevice(batteryInPercentage = 80)),
+        sizeWidget = WidgetSetting.Type.Large,
+        tone = BatteryTone.Full
     )
 }

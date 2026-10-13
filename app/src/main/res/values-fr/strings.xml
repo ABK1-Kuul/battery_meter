@@ -118,4 +118,8 @@
     <string name="always_on_display">Écran toujours allumé (AOD)</string>
     <string name="always_on_display_desc">Garder le moniteur de batterie affiché à l\'écran</string>
     <string name="back">Retour</string>
+    <string name="widget_style_horizontal">Horizontal</string>
+    <string name="widget_style_circle">Circulaire</string>
+    <string name="widget_transparency_opaque">Standard</string>
+    <string name="widget_transparency_transparent">Transparent</string>
 </resources>

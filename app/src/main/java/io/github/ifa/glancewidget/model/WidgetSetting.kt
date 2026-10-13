@@ -12,7 +12,7 @@ data class WidgetSetting(
     val style: Style = Style.Horizontal,
 ) {
     enum class Style {
-        Circle, Vertical, Horizontal;
+        Circle, Horizontal;
         companion object {
             fun fromOrdinal(ordinal: Int): Style {
                 return Style.entries.getOrNull(ordinal) ?: Horizontal

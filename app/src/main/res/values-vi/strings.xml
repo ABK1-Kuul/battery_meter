@@ -118,4 +118,8 @@
     <string name="always_on_display">Màn hình luôn bật (AOD)</string>
     <string name="always_on_display_desc">Giữ đồng hồ đo pin hiển thị trên màn hình</string>
     <string name="back">Quay lại</string>
+    <string name="widget_style_horizontal">Nằm ngang</string>
+    <string name="widget_style_circle">Hình tròn</string>
+    <string name="widget_transparency_opaque">Tiêu chuẩn</string>
+    <string name="widget_transparency_transparent">Trong suốt</string>
 </resources>
