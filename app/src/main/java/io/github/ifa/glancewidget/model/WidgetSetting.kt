@@ -3,6 +3,11 @@ package io.github.ifa.glancewidget.model
 import kotlinx.serialization.Serializable
 
 @Serializable
+enum class WidgetAccent {
+    Red, Mono, FollowTone
+}
+
+@Serializable
 data class WidgetSetting(
     val appWidgetId: Int = -1,
     val isTransparent: Boolean = false,
@@ -10,9 +15,11 @@ data class WidgetSetting(
     val width: Int = 1,
     val height: Int = 1,
     val style: Style = Style.Horizontal,
+    val accent: WidgetAccent = WidgetAccent.Red,
+    val glassOpacity: Float = 1.0f,
 ) {
     enum class Style {
-        Circle, Horizontal;
+        Circle, Horizontal, DotRing, MatrixTile, GlyphBar, LiquidTube, Orbit, Dot, StatPill;
         companion object {
             fun fromOrdinal(ordinal: Int): Style {
                 return Style.entries.getOrNull(ordinal) ?: Horizontal
@@ -48,17 +55,16 @@ data class WidgetSetting(
     fun getType(): Type {
         val ratio = height.toFloat() / width.toFloat()
         return when {
-            height < 110 && width < 90 -> Type.Smallest // 1x1
-            height < 110 && width > 300 -> Type.FullWidex1 // 4x1
-            height < 110 -> Type.Small // 3x1 or 4x1
-            height > 300 && width > 300 -> Type.Large // 4x4
+            height < 110 && width < 90 -> Type.Smallest
+            height < 110 && width > 300 -> Type.FullWidex1
+            height < 110 -> Type.Small
+            height > 300 && width > 300 -> Type.Large
             width < height -> Type.Tall
             height in 110..<width -> Type.Wide
             ratio in 0.75..1.25 -> Type.Square
             else -> Type.Default
         }
     }
-
 }
 
 @Serializable

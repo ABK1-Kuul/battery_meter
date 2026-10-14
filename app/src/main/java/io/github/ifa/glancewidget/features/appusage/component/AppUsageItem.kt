@@ -28,9 +28,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.foundation.clickable
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.glass.GlassSurface
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
 import io.github.ifa.glancewidget.ui.theme.metricSmall
 
 @Composable
@@ -42,14 +45,8 @@ fun AppUsageItem(
     progress: Float = 0f,
     onAppClick: () -> Unit
 ) {
-    Surface(
-        onClick = onAppClick,
-        shape = AppShape.card,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = Spacing.l, vertical = Spacing.xs)
-    ) {
+    val isGlassTheme = LocalIsGlassTheme.current
+    val itemContent: @Composable () -> Unit = {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -105,6 +102,31 @@ fun AppUsageItem(
             )
         }
     }
+
+    if (isGlassTheme) {
+        GlassSurface(
+            shape = AppShape.card,
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.l, vertical = Spacing.xs)
+                .clip(AppShape.card)
+                .clickable(onClick = onAppClick)
+        ) {
+            itemContent()
+        }
+    } else {
+        Surface(
+            onClick = onAppClick,
+            shape = AppShape.card,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.l, vertical = Spacing.xs)
+        ) {
+            itemContent()
+        }
+    }
+
 }
 
 @ThemePreviews

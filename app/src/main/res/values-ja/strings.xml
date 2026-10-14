@@ -144,4 +144,5 @@
     <string name="widget_style_stat_pill">スタットピル</string>
     <string name="widget_accent">ウィジェットのアクセント</string>
     <string name="widget_frost">ウィジェットのフロスト</string>
+    <string name="widget_accent_follow_tone">状態連動</string>
 </resources>

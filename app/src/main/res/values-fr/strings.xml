@@ -144,4 +144,5 @@
     <string name="widget_style_stat_pill">Pilule de stats</string>
     <string name="widget_accent">Accent du widget</string>
     <string name="widget_frost">Dépoli du widget</string>
+    <string name="widget_accent_follow_tone">Selon l\'état</string>
 </resources>

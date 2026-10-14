@@ -153,4 +153,5 @@
     <string name="widget_style_stat_pill">Stat Pill</string>
     <string name="widget_accent">Widget Accent</string>
     <string name="widget_frost">Widget Frost</string>
+    <string name="widget_accent_follow_tone">Follow Tone</string>
 </resources>

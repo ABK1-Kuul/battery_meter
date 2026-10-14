@@ -25,6 +25,16 @@ import io.github.ifa.glancewidget.model.WidgetSettings
 import io.github.ifa.glancewidget.utils.fromJson
 import io.github.ifa.glancewidget.utils.getObject
 import io.github.ifa.glancewidget.utils.setObject
+import androidx.glance.GlanceModifier
+import androidx.glance.Image
+import androidx.glance.ImageProvider
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.padding
+import io.github.ifa.glancewidget.glance.glass.GlassBitmapRenderer
+import io.github.ifa.glancewidget.glance.glass.WidgetBitmapCacheKey
+import io.github.ifa.glancewidget.model.WidgetAccent
 import kotlinx.coroutines.flow.firstOrNull
 
 class BatteryWidget : GlanceAppWidget() {
@@ -155,6 +165,46 @@ class BatteryWidget : GlanceAppWidget() {
                 sizeWidget = sizeWidget,
                 tone = tone
             )
+
+            else -> {
+                val accent = remember(setting) {
+                    setting?.accent ?: WidgetAccent.Red
+                }
+                val opacity = remember(setting, isTransparent) {
+                    if (isTransparent) 0.35f else (setting?.glassOpacity ?: 1.0f)
+                }
+                val volt = battery?.myDevice?.voltage ?: 4.0f
+                val key = remember(widgetStyle, percent, isCharging, tone, temp, volt, accent, opacity) {
+                    WidgetBitmapCacheKey.create(
+                        style = widgetStyle,
+                        width = 400,
+                        height = 300,
+                        level = percent,
+                        isCharging = isCharging,
+                        tone = tone,
+                        temperature = temp,
+                        voltage = volt,
+                        accent = accent,
+                        opacity = opacity
+                    )
+                }
+                val bitmap = remember(key) {
+                    GlassBitmapRenderer.renderOffscreen(key)
+                }
+                val description = remember(percent, isCharging) {
+                    GlassBitmapRenderer.getReadableSummary(percent, isCharging)
+                }
+                Box(
+                    modifier = GlanceModifier.fillMaxSize().padding(PADDING),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        provider = ImageProvider(bitmap),
+                        contentDescription = description,
+                        modifier = GlanceModifier.fillMaxSize()
+                    )
+                }
+            }
         }
     }
 

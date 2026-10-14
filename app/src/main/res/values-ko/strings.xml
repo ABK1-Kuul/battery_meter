@@ -143,4 +143,5 @@
     <string name="widget_style_stat_pill">스탯 필</string>
     <string name="widget_accent">위젯 강조 색상</string>
     <string name="widget_frost">위젯 프로스트</string>
+    <string name="widget_accent_follow_tone">상태 색상 연동</string>
 </resources>

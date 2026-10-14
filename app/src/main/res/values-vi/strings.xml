@@ -144,4 +144,5 @@
     <string name="widget_style_stat_pill">Thẻ trạng thái</string>
     <string name="widget_accent">Điểm nhấn tiện ích</string>
     <string name="widget_frost">Độ mờ tiện ích</string>
+    <string name="widget_accent_follow_tone">Theo trạng thái</string>
 </resources>

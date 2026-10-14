@@ -143,4 +143,5 @@
     <string name="widget_style_stat_pill">Píldora de estado</string>
     <string name="widget_accent">Acento del widget</string>
     <string name="widget_frost">Esmerilado del widget</string>
+    <string name="widget_accent_follow_tone">Según el estado</string>
 </resources>

@@ -12,21 +12,27 @@ class DotRingGeometryTest {
 
     @Test
     fun litDotsCalculatesCorrectlyForVariousProgressLevels() {
-        val totalDots = 48
+        val totalDots = 44
 
-        val zeroLit = (0f.coerceIn(0f, 1f) * totalDots).toInt().coerceIn(0, totalDots)
+        val zeroLit = DotRingGeometry.calculateLitCount(0f, totalDots)
         assertEquals(0, zeroLit)
+        val zeroHead = DotRingGeometry.calculateHeadIndex(0f, totalDots)
+        assertEquals(-1, zeroHead)
 
-        val halfLit = (0.5f.coerceIn(0f, 1f) * totalDots).toInt().coerceIn(0, totalDots)
-        assertEquals(24, halfLit)
+        val point46Lit = DotRingGeometry.calculateLitCount(0.46f, totalDots)
+        assertEquals(20, point46Lit)
+        val point46Head = DotRingGeometry.calculateHeadIndex(0.46f, totalDots)
+        assertEquals(19, point46Head)
 
-        val fullLit = (1.0f.coerceIn(0f, 1f) * totalDots).toInt().coerceIn(0, totalDots)
-        assertEquals(48, fullLit)
+        val fullLit = DotRingGeometry.calculateLitCount(1.0f, totalDots)
+        assertEquals(44, fullLit)
+        val fullHead = DotRingGeometry.calculateHeadIndex(1.0f, totalDots)
+        assertEquals(43, fullHead)
 
-        val overLit = (1.5f.coerceIn(0f, 1f) * totalDots).toInt().coerceIn(0, totalDots)
-        assertEquals(48, overLit)
+        val overLit = DotRingGeometry.calculateLitCount(1.5f, totalDots)
+        assertEquals(44, overLit)
 
-        val underLit = ((-0.5f).coerceIn(0f, 1f) * totalDots).toInt().coerceIn(0, totalDots)
+        val underLit = DotRingGeometry.calculateLitCount(-0.5f, totalDots)
         assertEquals(0, underLit)
     }
 

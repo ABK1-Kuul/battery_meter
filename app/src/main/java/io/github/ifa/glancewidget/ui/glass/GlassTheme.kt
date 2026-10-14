@@ -20,8 +20,12 @@ val GlassTextSecondary = Color(0x99F2F2F2)
 val GlassAccentRed = Color(0xFFE5232B)
 val GlassAccentMono = Color(0xFFFFFFFF)
 val GlassBorder = Color(0x24FFFFFF)
+val GlassTintEnd = Color(0x0AFFFFFF)
 val GlassHighlight = Color(0x29FFFFFF)
 val GlassSpecular = Color(0x4DFFFFFF)
+val GlassGhostDot = Color(0x1AFFFFFF)
+val GlassInnerShadow = Color(0x66000000)
+val GlassMeniscus = Color(0xB3FFFFFF)
 
 fun glassColorScheme(accent: GlassAccent): ColorScheme {
     val accentColor = when (accent) {
