@@ -137,6 +137,7 @@ dependencies {
 
     implementation(libs.dagger.hilt.android)
     implementation(libs.androidx.compose.adaptive.navigation)
+    implementation(libs.haze)
     kapt(libs.androidx.hilt.compiler)
     kapt(libs.dagger.hilt.android.compiler)
     kapt(libs.dagger.hilt.compiler)

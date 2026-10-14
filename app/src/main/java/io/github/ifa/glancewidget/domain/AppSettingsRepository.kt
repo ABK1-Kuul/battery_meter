@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import io.github.ifa.glancewidget.di.LocalRepositories
 import io.github.ifa.glancewidget.model.AppSettings
 import io.github.ifa.glancewidget.model.BonnedDeviceSettings
+import io.github.ifa.glancewidget.model.GlassAccent
 import io.github.ifa.glancewidget.model.MyDevice
 import io.github.ifa.glancewidget.model.ThemeType
 import io.github.ifa.glancewidget.model.ThemeTypeColor
@@ -20,6 +21,9 @@ interface AppSettingsRepository {
     suspend fun saveBondedDeviceSetting(macAddress: String, showInWidget: Boolean)
     suspend fun saveEnableBlackDark(enabled: Boolean)
     suspend fun saveTemperatureUnit(temperatureUnit: MyDevice.Temperature.TemperatureUnit)
+    suspend fun saveGlassThemeEnabled(enabled: Boolean) {}
+    suspend fun saveGlassAccent(accent: GlassAccent) {}
+    suspend fun saveGlassFrost(frost: Int) {}
     fun getBondedDeviceSettings(): Flow<BonnedDeviceSettings>
 }
 

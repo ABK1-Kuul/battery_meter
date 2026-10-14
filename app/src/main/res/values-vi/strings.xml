@@ -128,4 +128,20 @@
     <string name="chart_range_all">Tất cả</string>
     <string name="chart_history">Lịch sử</string>
     <string name="no_chart_data">Chưa có dữ liệu lịch sử nào được ghi lại</string>
+    <string name="glass_theme">Chủ đề Kính</string>
+    <string name="glass_theme_desc">Thiết kế kính mờ với kiểu chữ ma trận điểm</string>
+    <string name="glass_accent">Màu điểm nhấn</string>
+    <string name="glass_accent_red">Đỏ</string>
+    <string name="glass_accent_mono">Đơn sắc</string>
+    <string name="glass_frost">Độ mờ nhám</string>
+    <string name="font_doto_license">Phông chữ Doto (OFL 1.1)</string>
+    <string name="widget_style_dot_ring">Vòng điểm</string>
+    <string name="widget_style_glyph_bar">Thanh ký tự</string>
+    <string name="widget_style_dot">Điểm</string>
+    <string name="widget_style_matrix_tile">Ô ma trận</string>
+    <string name="widget_style_liquid_tube">Ống chất lỏng</string>
+    <string name="widget_style_orbit">Quỹ đạo</string>
+    <string name="widget_style_stat_pill">Thẻ trạng thái</string>
+    <string name="widget_accent">Điểm nhấn tiện ích</string>
+    <string name="widget_frost">Độ mờ tiện ích</string>
 </resources>

@@ -172,7 +172,10 @@ fun SettingsSupportingPaneScreen(
                                 viewModel.setThemeTypeColor(themeColor)
                                 context.syncThemeColorToWidget(themeColor)
                             },
-                            onEnableBlackDark = viewModel::setEnableBlackDark
+                            onEnableBlackDark = viewModel::setEnableBlackDark,
+                            onEnableGlassTheme = viewModel::setGlassThemeEnabled,
+                            onSelectGlassAccent = viewModel::setGlassAccent,
+                            onSetGlassFrost = viewModel::setGlassFrost
                         )
                     }
                     SettingsPane.WidgetSettings -> {

@@ -127,4 +127,20 @@
     <string name="chart_range_all">Todo</string>
     <string name="chart_history">Historial</string>
     <string name="no_chart_data">Aún no hay datos de historial registrados</string>
+    <string name="glass_theme">Tema de Cristal</string>
+    <string name="glass_theme_desc">Estética de cristal esmerilado con tipografía de matriz de puntos</string>
+    <string name="glass_accent">Color de acento</string>
+    <string name="glass_accent_red">Rojo</string>
+    <string name="glass_accent_mono">Monocromo</string>
+    <string name="glass_frost">Desenfoque esmerilado</string>
+    <string name="font_doto_license">Fuente Doto (OFL 1.1)</string>
+    <string name="widget_style_dot_ring">Anillo de puntos</string>
+    <string name="widget_style_glyph_bar">Barra de glifos</string>
+    <string name="widget_style_dot">Punto</string>
+    <string name="widget_style_matrix_tile">Mosaico matricial</string>
+    <string name="widget_style_liquid_tube">Tubo líquido</string>
+    <string name="widget_style_orbit">Órbita</string>
+    <string name="widget_style_stat_pill">Píldora de estado</string>
+    <string name="widget_accent">Acento del widget</string>
+    <string name="widget_frost">Esmerilado del widget</string>
 </resources>

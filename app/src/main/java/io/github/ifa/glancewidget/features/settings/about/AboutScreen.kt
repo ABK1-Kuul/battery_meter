@@ -312,6 +312,14 @@ internal fun AboutScreen(
                         onClick = onOpenLicensesScreen
                     )
                     TextWithRightArrow(
+                        text = stringResource(id = R.string.font_doto_license),
+                        icon = painterResource(id = R.drawable.ic_license),
+                        rightIcon = Icons.AutoMirrored.Rounded.OpenInNew,
+                        onClick = {
+                            onExternalUrlClick(context, "https://github.com/googlefonts/doto")
+                        }
+                    )
+                    TextWithRightArrow(
                         text = stringResource(id = R.string.privacy_policy),
                         icon = painterResource(id = R.drawable.ic_policy),
                         rightIcon = Icons.AutoMirrored.Rounded.OpenInNew,

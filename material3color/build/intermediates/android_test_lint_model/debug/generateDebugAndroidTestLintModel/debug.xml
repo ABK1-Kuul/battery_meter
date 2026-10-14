@@ -25,6 +25,6 @@
       type="INSTRUMENTATION_TEST"
       applicationId="com.dotsdev.material3color.test"
       generatedResourceFolders="build\generated\res\resValues\androidTest\debug"
-      desugaredMethodsFiles="C:\Users\admin\.gradle\caches\8.13\transforms\15e78efa5980e0466e8905d591f80f85\transformed\D8BackportedDesugaredMethods.txt">
+      desugaredMethodsFiles="C:\Users\admin\.gradle\caches\8.13\transforms\382cbffee94cc2d8ea598da3ac0eb4ee\transformed\D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>

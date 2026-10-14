@@ -25,6 +25,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.glass.GlassSurface
+import io.github.ifa.glancewidget.ui.glass.GlassTextPrimary
+import io.github.ifa.glancewidget.ui.glass.GlassTextSecondary
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.theme.glassLabel
 
 @Composable
 fun SettingsGroup(
@@ -32,11 +37,12 @@ fun SettingsGroup(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val isGlassTheme = LocalIsGlassTheme.current
     Column(modifier = modifier) {
         if (!title.isNullOrBlank()) {
             Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
+                text = if (isGlassTheme) title.uppercase() else title,
+                style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(
                     start = Spacing.m,
@@ -45,15 +51,27 @@ fun SettingsGroup(
                 )
             )
         }
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = AppShape.card,
-            color = MaterialTheme.colorScheme.surfaceContainerLow
-        ) {
-            Column(
+        if (isGlassTheme) {
+            GlassSurface(
                 modifier = Modifier.fillMaxWidth(),
-                content = content
-            )
+                shape = AppShape.card
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    content = content
+                )
+            }
+        } else {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = AppShape.card,
+                color = MaterialTheme.colorScheme.surfaceContainerLow
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    content = content
+                )
+            }
         }
     }
 }
@@ -69,6 +87,7 @@ fun SettingsRow(
     trailing: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
+    val isGlassTheme = LocalIsGlassTheme.current
     val clickableModifier = if (onClick != null) {
         Modifier.clickable(onClick = onClick)
     } else {
@@ -90,7 +109,7 @@ fun SettingsRow(
                 painter = leadingPainter,
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.width(Spacing.m))
         } else if (leadingIcon != null) {
@@ -98,7 +117,7 @@ fun SettingsRow(
                 imageVector = leadingIcon,
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.width(Spacing.m))
         }
@@ -107,13 +126,13 @@ fun SettingsRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onSurface
             )
             if (!subtitle.isNullOrBlank()) {
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isGlassTheme) GlassTextSecondary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

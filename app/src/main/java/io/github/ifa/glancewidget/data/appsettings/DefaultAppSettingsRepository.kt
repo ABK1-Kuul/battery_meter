@@ -6,6 +6,7 @@ import io.github.ifa.glancewidget.domain.AppSettingsRepository
 import io.github.ifa.glancewidget.glance.battery.BatteryWidget
 import io.github.ifa.glancewidget.model.AppSettings
 import io.github.ifa.glancewidget.model.BonnedDeviceSettings
+import io.github.ifa.glancewidget.model.GlassAccent
 import io.github.ifa.glancewidget.model.MyDevice
 import io.github.ifa.glancewidget.model.ThemeType
 import io.github.ifa.glancewidget.model.ThemeTypeColor
@@ -87,6 +88,21 @@ class DefaultAppSettingsRepository(
     override suspend fun saveTemperatureUnit(temperatureUnit: MyDevice.Temperature.TemperatureUnit) {
         val settings = appSettingDataStore.getSettings()
         appSettingDataStore.saveSettings(settings.copy(temperatureUnit = temperatureUnit))
+    }
+
+    override suspend fun saveGlassThemeEnabled(enabled: Boolean) {
+        val settings = appSettingDataStore.getSettings()
+        appSettingDataStore.saveSettings(settings.copy(isGlassThemeEnabled = enabled))
+    }
+
+    override suspend fun saveGlassAccent(accent: GlassAccent) {
+        val settings = appSettingDataStore.getSettings()
+        appSettingDataStore.saveSettings(settings.copy(glassAccent = accent))
+    }
+
+    override suspend fun saveGlassFrost(frost: Int) {
+        val settings = appSettingDataStore.getSettings()
+        appSettingDataStore.saveSettings(settings.copy(glassFrost = frost.coerceIn(0, 32)))
     }
 
     override fun getBondedDeviceSettings(): Flow<BonnedDeviceSettings> {

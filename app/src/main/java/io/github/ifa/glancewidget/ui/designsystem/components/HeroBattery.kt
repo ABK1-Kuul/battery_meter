@@ -41,6 +41,17 @@ import io.github.ifa.glancewidget.ui.model.asString
 import io.github.ifa.glancewidget.ui.model.colors
 import io.github.ifa.glancewidget.ui.theme.metricLarge
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import io.github.ifa.glancewidget.ui.glass.DotMatrixText
+import io.github.ifa.glancewidget.ui.glass.GlassBorder
+import io.github.ifa.glancewidget.ui.glass.GlassSurface
+import io.github.ifa.glancewidget.ui.glass.GlassTextPrimary
+import io.github.ifa.glancewidget.ui.glass.GlassTextSecondary
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.theme.glassLabel
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun HeroBattery(
@@ -48,6 +59,7 @@ fun HeroBattery(
     chips: List<ChipData>,
     modifier: Modifier = Modifier
 ) {
+    val isGlassTheme = LocalIsGlassTheme.current
     val toneColors = model.tone.colors()
     val animatedProgress by animateFloatAsState(
         targetValue = (model.level / 100f).coerceIn(0f, 1f),
@@ -57,72 +69,136 @@ fun HeroBattery(
 
     val heroDescription = "${model.level}% ${model.statusLine.asString()}"
 
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {
-                contentDescription = heroDescription
-            },
-        shape = AppShape.hero,
-        color = toneColors.container
-    ) {
-        Column(
-            modifier = Modifier
+    if (isGlassTheme) {
+        GlassSurface(
+            modifier = modifier
                 .fillMaxWidth()
-                .padding(Spacing.xl),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .semantics(mergeDescendants = true) {
+                    contentDescription = heroDescription
+                },
+            shape = AppShape.hero
         ) {
-            Box(
-                modifier = Modifier.padding(Spacing.m),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Spacing.xl),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                CircularWavyProgressIndicator(
-                    progress = { animatedProgress },
-                    modifier = Modifier.size(180.dp),
-                    color = toneColors.accent,
-                    trackColor = toneColors.onContainer.copy(alpha = 0.12f),
-                    stroke = Stroke(
-                        width = 16f,
-                        cap = StrokeCap.Round
-                    ),
-                    wavelength = 32.dp,
-                    amplitude = if (model.isCharging) { _ -> 1f } else { _ -> 0f }
+                Spacer(modifier = Modifier.height(Spacing.m))
+                DotMatrixText(
+                    text = "${model.level}%",
+                    dotSize = 4.dp,
+                    dotSpacing = 1.5.dp,
+                    charSpacing = 4.dp,
+                    tint = GlassTextPrimary
                 )
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.Bottom) {
-                        AnimatedCounter(
-                            count = model.level,
-                            style = MaterialTheme.typography.metricLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = toneColors.onContainer
-                        )
-                        Text(
-                            text = "%",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = toneColors.onContainer,
-                            modifier = Modifier.padding(bottom = Spacing.s)
+                Spacer(modifier = Modifier.height(Spacing.l))
+                val totalDots = 22
+                val litDots = (animatedProgress * totalDots).toInt().coerceIn(0, totalDots)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    for (i in 0 until totalDots) {
+                        val isLit = i < litDots
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (isLit) MaterialTheme.colorScheme.primary else GlassBorder
+                                )
                         )
                     }
-
-                    Text(
-                        text = model.statusLine.asString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = toneColors.onContainer
-                    )
+                }
+                Spacer(modifier = Modifier.height(Spacing.m))
+                Text(
+                    text = model.statusLine.asString().uppercase(),
+                    style = MaterialTheme.typography.glassLabel,
+                    color = GlassTextSecondary
+                )
+                if (chips.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(Spacing.m))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        chips.forEach { chip ->
+                            StatusChip(label = chip.label, icon = chip.icon)
+                        }
+                    }
                 }
             }
-
-            if (chips.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(Spacing.m))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+        }
+    } else {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .semantics(mergeDescendants = true) {
+                    contentDescription = heroDescription
+                },
+            shape = AppShape.hero,
+            color = toneColors.container
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Spacing.xl),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier.padding(Spacing.m),
+                    contentAlignment = Alignment.Center
                 ) {
-                    chips.forEach { chip ->
-                        StatusChip(label = chip.label, icon = chip.icon)
+                    CircularWavyProgressIndicator(
+                        progress = { animatedProgress },
+                        modifier = Modifier.size(180.dp),
+                        color = toneColors.accent,
+                        trackColor = toneColors.onContainer.copy(alpha = 0.12f),
+                        stroke = Stroke(
+                            width = 16f,
+                            cap = StrokeCap.Round
+                        ),
+                        wavelength = 32.dp,
+                        amplitude = if (model.isCharging) { _ -> 1f } else { _ -> 0f }
+                    )
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            AnimatedCounter(
+                                count = model.level,
+                                style = MaterialTheme.typography.metricLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = toneColors.onContainer
+                            )
+                            Text(
+                                text = "%",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = toneColors.onContainer,
+                                modifier = Modifier.padding(bottom = Spacing.s)
+                            )
+                        }
+
+                        Text(
+                            text = model.statusLine.asString(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = toneColors.onContainer
+                        )
+                    }
+                }
+
+                if (chips.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(Spacing.m))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        chips.forEach { chip ->
+                            StatusChip(label = chip.label, icon = chip.icon)
+                        }
                     }
                 }
             }

@@ -128,4 +128,20 @@
     <string name="chart_range_all">すべて</string>
     <string name="chart_history">履歴</string>
     <string name="no_chart_data">履歴データはまだ記録されていません</string>
+    <string name="glass_theme">ガラステーマ</string>
+    <string name="glass_theme_desc">ドットマトリクス文字とすりガラス風デザイン</string>
+    <string name="glass_accent">アクセントカラー</string>
+    <string name="glass_accent_red">レッド</string>
+    <string name="glass_accent_mono">モノクロ</string>
+    <string name="glass_frost">フロストブラー</string>
+    <string name="font_doto_license">Dotoフォント (OFL 1.1)</string>
+    <string name="widget_style_dot_ring">ドットリング</string>
+    <string name="widget_style_glyph_bar">グリフバー</string>
+    <string name="widget_style_dot">ドット</string>
+    <string name="widget_style_matrix_tile">マトリックスタイル</string>
+    <string name="widget_style_liquid_tube">リキッドチューブ</string>
+    <string name="widget_style_orbit">オービット</string>
+    <string name="widget_style_stat_pill">スタットピル</string>
+    <string name="widget_accent">ウィジェットのアクセント</string>
+    <string name="widget_frost">ウィジェットのフロスト</string>
 </resources>

@@ -137,4 +137,20 @@
     <string name="chart_range_all">All</string>
     <string name="chart_history">History</string>
     <string name="no_chart_data">No history data recorded yet</string>
+    <string name="glass_theme">Glass Theme</string>
+    <string name="glass_theme_desc">Frosted glass aesthetic with dot matrix typography</string>
+    <string name="glass_accent">Accent Color</string>
+    <string name="glass_accent_red">Red</string>
+    <string name="glass_accent_mono">Mono</string>
+    <string name="glass_frost">Frost Blur</string>
+    <string name="font_doto_license">Doto Font (OFL 1.1)</string>
+    <string name="widget_style_dot_ring">Dot Ring</string>
+    <string name="widget_style_glyph_bar">Glyph Bar</string>
+    <string name="widget_style_dot">Dot</string>
+    <string name="widget_style_matrix_tile">Matrix Tile</string>
+    <string name="widget_style_liquid_tube">Liquid Tube</string>
+    <string name="widget_style_orbit">Orbit</string>
+    <string name="widget_style_stat_pill">Stat Pill</string>
+    <string name="widget_accent">Widget Accent</string>
+    <string name="widget_frost">Widget Frost</string>
 </resources>

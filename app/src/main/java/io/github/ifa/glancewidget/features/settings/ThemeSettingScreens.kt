@@ -29,6 +29,8 @@ import io.github.ifa.glancewidget.ui.component.AnimatedTextTopAppBar
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 
+import io.github.ifa.glancewidget.model.GlassAccent
+
 @Composable
 fun ThemeSettingsScreen(
     uiState: SettingsViewModel.SettingsScreenUiState,
@@ -37,6 +39,9 @@ fun ThemeSettingsScreen(
     onSelectTheme: (ThemeType) -> Unit,
     onSelectThemeColor: (ThemeTypeColor) -> Unit,
     onEnableBlackDark: (Boolean) -> Unit,
+    onEnableGlassTheme: (Boolean) -> Unit = {},
+    onSelectGlassAccent: (GlassAccent) -> Unit = {},
+    onSetGlassFrost: (Int) -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     ThemeSettingsScreenLayout(
@@ -47,6 +52,9 @@ fun ThemeSettingsScreen(
         onSelectTheme = onSelectTheme,
         onSelectThemeColor = onSelectThemeColor,
         onEnableBlackDark = onEnableBlackDark,
+        onEnableGlassTheme = onEnableGlassTheme,
+        onSelectGlassAccent = onSelectGlassAccent,
+        onSetGlassFrost = onSetGlassFrost,
     )
 }
 
@@ -60,6 +68,9 @@ internal fun ThemeSettingsScreenLayout(
     onSelectThemeColor: (ThemeTypeColor) -> Unit,
     onEnableBlackDark: (Boolean) -> Unit,
     onNavigationIconClick: () -> Unit,
+    onEnableGlassTheme: (Boolean) -> Unit = {},
+    onSelectGlassAccent: (GlassAccent) -> Unit = {},
+    onSetGlassFrost: (Int) -> Unit = {}
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
@@ -99,6 +110,9 @@ internal fun ThemeSettingsScreenLayout(
                     onSelectThemeColor = onSelectThemeColor,
                     onEnableBlackDark = onEnableBlackDark,
                     uiState = uiState,
+                    onEnableGlassTheme = onEnableGlassTheme,
+                    onSelectGlassAccent = onSelectGlassAccent,
+                    onSetGlassFrost = onSetGlassFrost,
                 )
             }
         }

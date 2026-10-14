@@ -10,6 +10,7 @@ import io.github.ifa.glancewidget.model.BonedDevice
 import io.github.ifa.glancewidget.model.BonnedDeviceSettings
 import io.github.ifa.glancewidget.model.ThemeType
 import io.github.ifa.glancewidget.model.ThemeTypeColor
+import io.github.ifa.glancewidget.model.GlassAccent
 import io.github.ifa.glancewidget.model.MyDevice
 import io.github.ifa.glancewidget.utils.buildUiState
 import com.dotsdev.material3color.isSupportedDynamicColor
@@ -35,7 +36,10 @@ class SettingsViewModel @Inject constructor(
         val isBlackDarkEnabled: Boolean = false,
         val notificationSetting: AppSettings.NotificationSetting = AppSettings.NotificationSetting(),
         val bonedDeviceSettings: BonnedDeviceSettings = BonnedDeviceSettings(),
-        val bonedDevices: List<BonedDevice> = emptyList()
+        val bonedDevices: List<BonedDevice> = emptyList(),
+        val isGlassThemeEnabled: Boolean = false,
+        val glassAccent: GlassAccent = GlassAccent.Red,
+        val glassFrost: Int = 18
     ) {
         val colorScheme = if (!isSupportedDynamicColor() && themeColor == ThemeTypeColor.System) {
             ThemeTypeColor.entries.first()
@@ -81,8 +85,29 @@ class SettingsViewModel @Inject constructor(
             isBlackDarkEnabled = settings.isBlackDarkEnabled,
             notificationSetting = settings.notificationSetting,
             bonedDeviceSettings = bonedDeviceSettings,
-            bonedDevices = bonedDevices
+            bonedDevices = bonedDevices,
+            isGlassThemeEnabled = settings.isGlassThemeEnabled,
+            glassAccent = settings.glassAccent,
+            glassFrost = settings.glassFrost
         )
+    }
+
+    fun setGlassThemeEnabled(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            settingsRepository.saveGlassThemeEnabled(enabled)
+        }
+    }
+
+    fun setGlassAccent(accent: GlassAccent) {
+        viewModelScope.launch(Dispatchers.IO) {
+            settingsRepository.saveGlassAccent(accent)
+        }
+    }
+
+    fun setGlassFrost(frost: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            settingsRepository.saveGlassFrost(frost)
+        }
     }
 
     fun setThemeType(themeType: ThemeType) {

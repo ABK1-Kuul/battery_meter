@@ -12,11 +12,13 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import io.github.ifa.glancewidget.R
 
 val googleFlex400 = FontFamily(Font(R.font.google_sans_flex_400))
 val googleFlex600 = FontFamily(Font(R.font.google_sans_flex_600))
+val dotoFontFamily = FontFamily(Font(R.font.doto))
 val TYPOGRAPHY = Typography()
 
 object Type {
@@ -82,6 +84,65 @@ object Type {
             fontFeatureSettings = "ss02"
         )
     )
+
+    val glassTypography = Typography(
+        displayLarge = TYPOGRAPHY.displayLarge.copy(
+            fontFamily = dotoFontFamily
+        ),
+        displayMedium = TYPOGRAPHY.displayMedium.copy(
+            fontFamily = dotoFontFamily
+        ),
+        displaySmall = TYPOGRAPHY.displaySmall.copy(
+            fontFamily = dotoFontFamily
+        ),
+        headlineLarge = TYPOGRAPHY.headlineLarge.copy(
+            fontFamily = dotoFontFamily
+        ),
+        headlineMedium = TYPOGRAPHY.headlineMedium.copy(
+            fontFamily = dotoFontFamily
+        ),
+        headlineSmall = TYPOGRAPHY.headlineSmall.copy(
+            fontFamily = dotoFontFamily
+        ),
+        titleLarge = TYPOGRAPHY.titleLarge.copy(
+            fontFamily = dotoFontFamily
+        ),
+        titleMedium = TYPOGRAPHY.titleMedium.copy(
+            fontFamily = googleFlex400,
+            fontFeatureSettings = "ss02"
+        ),
+        titleSmall = TYPOGRAPHY.titleSmall.copy(
+            fontFamily = googleFlex400,
+            fontFeatureSettings = "ss02"
+        ),
+        bodyLarge = TYPOGRAPHY.bodyLarge.copy(
+            fontFamily = googleFlex400,
+            fontFeatureSettings = "ss02"
+        ),
+        bodyMedium = TYPOGRAPHY.bodyMedium.copy(
+            fontFamily = googleFlex400,
+            fontFeatureSettings = "ss02"
+        ),
+        bodySmall = TYPOGRAPHY.bodySmall.copy(
+            fontFamily = googleFlex400,
+            fontFeatureSettings = "ss02"
+        ),
+        labelLarge = TYPOGRAPHY.labelLarge.copy(
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+            letterSpacing = 0.08.em
+        ),
+        labelMedium = TYPOGRAPHY.labelMedium.copy(
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+            letterSpacing = 0.08.em
+        ),
+        labelSmall = TYPOGRAPHY.labelSmall.copy(
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+            letterSpacing = 0.08.em
+        )
+    )
 }
 
 val Typography.metricLarge: TextStyle
@@ -103,6 +164,31 @@ val Typography.metricSmall: TextStyle
         fontFamily = googleFlex600,
         fontSize = 18.sp,
         fontFeatureSettings = "tnum, ss02"
+    )
+
+val Typography.glassLabel: TextStyle
+    get() = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontSize = 11.sp,
+        letterSpacing = 0.08.em
+    )
+
+val Typography.glassMetricLarge: TextStyle
+    get() = TextStyle(
+        fontFamily = dotoFontFamily,
+        fontSize = 56.sp
+    )
+
+val Typography.glassMetricMedium: TextStyle
+    get() = TextStyle(
+        fontFamily = dotoFontFamily,
+        fontSize = 28.sp
+    )
+
+val Typography.glassMetricSmall: TextStyle
+    get() = TextStyle(
+        fontFamily = dotoFontFamily,
+        fontSize = 18.sp
     )
 
 @Preview(showBackground = true)

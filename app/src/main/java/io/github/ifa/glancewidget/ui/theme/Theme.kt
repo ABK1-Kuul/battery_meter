@@ -30,6 +30,10 @@ import com.dotsdev.material3color.getLightScheme
 import com.dotsdev.material3color.rememberColorScheme
 import kotlin.text.get
 
+import io.github.ifa.glancewidget.ui.glass.LocalGlassFrost
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.glass.glassColorScheme
+
 data class AppColorScheme(
     val themeTypeColor: ThemeTypeColor,
     val colorScheme: ColorScheme
@@ -45,10 +49,11 @@ fun AppTheme(
     content: @Composable () -> Unit
 ) {
     val settings by appSettingsRepository.get().collectAsStateWithLifecycle(AppSettings())
-    val isDarkTheme = when (settings.theme) {
-        ThemeType.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-        ThemeType.DARK_THEME -> true
-        ThemeType.LIGHT_THEME -> false
+    val isDarkTheme = when {
+        settings.isGlassThemeEnabled -> true
+        settings.theme == ThemeType.DARK_THEME -> true
+        settings.theme == ThemeType.LIGHT_THEME -> false
+        else -> isSystemInDarkTheme()
     }
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -58,20 +63,32 @@ fun AppTheme(
         }
     }
 
-    val colorScheme = rememberColorScheme(
+    val dynamicOrPresetScheme = rememberColorScheme(
         isDarkTheme = isDarkTheme,
         isEnabledBlackDark = settings.isBlackDarkEnabled,
         isDynamicColor = settings.themeColor == ThemeTypeColor.System,
         seedColor = settings.themeColor.code,
     )
+    val colorScheme = if (settings.isGlassThemeEnabled) {
+        glassColorScheme(settings.glassAccent)
+    } else {
+        dynamicOrPresetScheme
+    }
+    val effectiveTypography = if (settings.isGlassThemeEnabled && typography == Type.typography) {
+        Type.glassTypography
+    } else {
+        typography
+    }
     val appColorScheme = rememberAppColorScheme(isDarkTheme, colorScheme)
     CompositionLocalProvider(
-        LocalAppColorSchemes provides appColorScheme
+        LocalAppColorSchemes provides appColorScheme,
+        LocalIsGlassTheme provides settings.isGlassThemeEnabled,
+        LocalGlassFrost provides settings.glassFrost
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
             shapes = shapes,
-            typography = typography,
+            typography = effectiveTypography,
             content = content
         )
     }

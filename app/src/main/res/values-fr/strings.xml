@@ -128,4 +128,20 @@
     <string name="chart_range_all">Tout</string>
     <string name="chart_history">Historique</string>
     <string name="no_chart_data">Aucune donnée d\'historique enregistrée pour le moment</string>
+    <string name="glass_theme">Thème Verre</string>
+    <string name="glass_theme_desc">Esthétique en verre dépoli avec typographie matricielle</string>
+    <string name="glass_accent">Couleur d\'accentuation</string>
+    <string name="glass_accent_red">Rouge</string>
+    <string name="glass_accent_mono">Monochrome</string>
+    <string name="glass_frost">Flou dépoli</string>
+    <string name="font_doto_license">Police Doto (OFL 1.1)</string>
+    <string name="widget_style_dot_ring">Anneau de points</string>
+    <string name="widget_style_glyph_bar">Barre de glyphes</string>
+    <string name="widget_style_dot">Point</string>
+    <string name="widget_style_matrix_tile">Tuile matricielle</string>
+    <string name="widget_style_liquid_tube">Tube liquide</string>
+    <string name="widget_style_orbit">Orbite</string>
+    <string name="widget_style_stat_pill">Pilule de stats</string>
+    <string name="widget_accent">Accent du widget</string>
+    <string name="widget_frost">Dépoli du widget</string>
 </resources>

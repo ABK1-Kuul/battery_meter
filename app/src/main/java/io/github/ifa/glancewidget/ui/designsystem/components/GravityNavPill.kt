@@ -38,6 +38,14 @@ import io.github.ifa.glancewidget.features.main.MainScreenTab
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import io.github.ifa.glancewidget.ui.gravity.PillWidth
 
+import androidx.compose.foundation.BorderStroke
+import io.github.ifa.glancewidget.ui.glass.GlassBorder
+import io.github.ifa.glancewidget.ui.glass.GlassHighlight
+import io.github.ifa.glancewidget.ui.glass.GlassSurfaceContainerHigh
+import io.github.ifa.glancewidget.ui.glass.GlassTextPrimary
+import io.github.ifa.glancewidget.ui.glass.GlassTextSecondary
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+
 @Composable
 fun GravityNavPill(
     selectedTab: MainScreenTab,
@@ -46,6 +54,11 @@ fun GravityNavPill(
     scale: Float = 1f,
     onBoundsChanged: (Rect) -> Unit = {}
 ) {
+    val isGlassTheme = LocalIsGlassTheme.current
+    val containerColor = if (isGlassTheme) GlassSurfaceContainerHigh else MaterialTheme.colorScheme.primaryContainer
+    val contentColor = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onPrimaryContainer
+    val borderStroke = if (isGlassTheme) BorderStroke(1.dp, GlassBorder) else null
+
     Surface(
         modifier = modifier
             .onGloballyPositioned { coordinates ->
@@ -60,9 +73,10 @@ fun GravityNavPill(
             .width(PillWidth)
             .wrapContentHeight(),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        shadowElevation = 6.dp
+        color = containerColor,
+        contentColor = contentColor,
+        border = borderStroke,
+        shadowElevation = if (isGlassTheme) 0.dp else 6.dp
     ) {
         Column(
             modifier = Modifier.padding(vertical = Spacing.m, horizontal = 4.dp),
@@ -74,12 +88,16 @@ fun GravityNavPill(
                 val labelText = stringResource(item.label)
 
                 if (isSelected) {
+                    val selectedBgColor = if (isGlassTheme) GlassHighlight else MaterialTheme.colorScheme.primary
+                    val selectedIconColor = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onPrimary
+                    val selectedTextColor = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onPrimary
+
                     Box(
                         modifier = Modifier
-                            .size(width = 48.dp, height = 60.dp)
+                            .size(width = 48.dp, height = if (isGlassTheme) 68.dp else 60.dp)
                             .clip(RoundedCornerShape(22.dp))
                             .background(
-                                color = MaterialTheme.colorScheme.primary,
+                                color = selectedBgColor,
                                 shape = RoundedCornerShape(22.dp)
                             )
                             .semantics {
@@ -98,7 +116,7 @@ fun GravityNavPill(
                                 painter = painterResource(item.selectedIcon),
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onPrimary
+                                tint = selectedIconColor
                             )
                             Text(
                                 text = labelText,
@@ -106,14 +124,24 @@ fun GravityNavPill(
                                     fontSize = 11.sp,
                                     lineHeight = 12.sp
                                 ),
-                                color = MaterialTheme.colorScheme.onPrimary,
+                                color = selectedTextColor,
                                 maxLines = 1,
                                 softWrap = false,
                                 overflow = TextOverflow.Ellipsis
                             )
+                            if (isGlassTheme) {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(top = 3.dp)
+                                        .size(5.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
+                                )
+                            }
                         }
                     }
                 } else {
+                    val unselectedColor = if (isGlassTheme) GlassTextSecondary else MaterialTheme.colorScheme.onPrimaryContainer
                     Box(
                         modifier = Modifier
                             .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
@@ -135,7 +163,7 @@ fun GravityNavPill(
                                 painter = painterResource(item.icon),
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                tint = unselectedColor
                             )
                         }
                     }

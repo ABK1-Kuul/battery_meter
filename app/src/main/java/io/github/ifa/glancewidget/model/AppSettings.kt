@@ -5,6 +5,12 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.serialization.Serializable
 
 @Serializable
+enum class GlassAccent {
+    Red,
+    Mono
+}
+
+@Serializable
 data class AppSettings(
     val theme: ThemeType = ThemeType.FOLLOW_SYSTEM,
     val themeColor: ThemeTypeColor = ThemeTypeColor.System,
@@ -12,8 +18,12 @@ data class AppSettings(
     val isBlackDarkEnabled: Boolean = false,
     val language: Language = Language.DEFAULT,
     val temperatureUnit: MyDevice.Temperature.TemperatureUnit? = null,
-    val notificationSetting: NotificationSetting = NotificationSetting()
+    val notificationSetting: NotificationSetting = NotificationSetting(),
+    val isGlassThemeEnabled: Boolean = false,
+    val glassAccent: GlassAccent = GlassAccent.Red,
+    val glassFrost: Int = 18
 ) {
+
     @Serializable
     data class NotificationSetting(
         val batteryAlert: Boolean = false,

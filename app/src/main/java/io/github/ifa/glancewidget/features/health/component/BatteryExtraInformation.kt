@@ -46,6 +46,13 @@ import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import io.github.ifa.glancewidget.ui.theme.metricLarge
 import io.github.ifa.glancewidget.ui.theme.metricSmall
+import io.github.ifa.glancewidget.ui.glass.DotMatrixText
+import io.github.ifa.glancewidget.ui.glass.DotRingIndicator
+import io.github.ifa.glancewidget.ui.glass.GlassBorder
+import io.github.ifa.glancewidget.ui.glass.GlassSurface
+import io.github.ifa.glancewidget.ui.glass.GlassTextPrimary
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.theme.glassLabel
 import io.github.ifa.glancewidget.utils.Constants.MAH_UNIT
 
 private fun Int.asMah(): String = if (this > 0) "$this $MAH_UNIT" else "--"
@@ -79,60 +86,107 @@ fun BatteryExtraInformation(
         )
     }
 
+    val isGlassTheme = LocalIsGlassTheme.current
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Spacing.l)
     ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = AppShape.hero,
-            color = MaterialTheme.colorScheme.surfaceContainerLow
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(Spacing.xl),
-                horizontalAlignment = Alignment.CenterHorizontally
+        if (isGlassTheme) {
+            GlassSurface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = AppShape.hero
             ) {
-                Box(
-                    modifier = Modifier.padding(Spacing.m),
-                    contentAlignment = Alignment.Center
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Spacing.xl),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CircularWavyProgressIndicator(
-                        progress = { animatePercentFloat.value },
-                        modifier = Modifier.size(180.dp),
-                        stroke = Stroke(
-                            width = 16f,
-                            cap = StrokeCap.Round,
-                        ),
-                        wavelength = 32.dp
-                    )
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            AnimatedCounter(
-                                count = percent,
-                                style = MaterialTheme.typography.metricLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                    Box(
+                        modifier = Modifier.padding(Spacing.m),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        DotRingIndicator(
+                            progress = animatePercentFloat.value,
+                            totalDots = 48,
+                            ringSize = 180.dp,
+                            dotRadius = 3.dp,
+                            litColor = MaterialTheme.colorScheme.primary,
+                            unlitColor = GlassBorder
+                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            DotMatrixText(
+                                text = "$percent%",
+                                dotSize = 3.dp,
+                                dotSpacing = 1.dp,
+                                charSpacing = 3.dp,
+                                tint = GlassTextPrimary
                             )
-                            Text(
-                                text = "%",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(bottom = Spacing.s)
+                            Spacer(modifier = Modifier.height(Spacing.m))
+                            StatusChip(
+                                label = stringResource(id = batteryHealth.type),
+                                icon = Icons.Rounded.Favorite
                             )
                         }
-                        Spacer(modifier = Modifier.height(Spacing.xs))
-                        StatusChip(
-                            label = stringResource(id = batteryHealth.type),
-                            icon = Icons.Rounded.Favorite
+                    }
+                }
+            }
+        } else {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = AppShape.hero,
+                color = MaterialTheme.colorScheme.surfaceContainerLow
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Spacing.xl),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier.padding(Spacing.m),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularWavyProgressIndicator(
+                            progress = { animatePercentFloat.value },
+                            modifier = Modifier.size(180.dp),
+                            stroke = Stroke(
+                                width = 16f,
+                                cap = StrokeCap.Round,
+                            ),
+                            wavelength = 32.dp
                         )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                AnimatedCounter(
+                                    count = percent,
+                                    style = MaterialTheme.typography.metricLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "%",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(bottom = Spacing.s)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(Spacing.xs))
+                            StatusChip(
+                                label = stringResource(id = batteryHealth.type),
+                                icon = Icons.Rounded.Favorite
+                            )
+                        }
                     }
                 }
             }
         }
+
+        val rowValueStyle = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.metricSmall
+        val rowValueColor = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onSurface
 
         SettingsGroup(title = stringResource(id = R.string.capacity)) {
             SettingsRow(
@@ -141,8 +195,8 @@ fun BatteryExtraInformation(
                 trailing = {
                     Text(
                         text = "${extraBatteryInfo.capacity} $MAH_UNIT",
-                        style = MaterialTheme.typography.metricSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = rowValueStyle,
+                        color = rowValueColor
                     )
                 }
             )
@@ -156,8 +210,8 @@ fun BatteryExtraInformation(
                 trailing = {
                     Text(
                         text = extraBatteryInfo.fullChargeCapacity.asMah(),
-                        style = MaterialTheme.typography.metricSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = rowValueStyle,
+                        color = rowValueColor
                     )
                 }
             )
@@ -171,8 +225,8 @@ fun BatteryExtraInformation(
                 trailing = {
                     Text(
                         text = extraBatteryInfo.chargeCounter.asMah(),
-                        style = MaterialTheme.typography.metricSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = rowValueStyle,
+                        color = rowValueColor
                     )
                 }
             )
@@ -185,8 +239,8 @@ fun BatteryExtraInformation(
                 trailing = {
                     Text(
                         text = stringResource(id = batteryHealth.type),
-                        style = MaterialTheme.typography.metricSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = rowValueStyle,
+                        color = rowValueColor
                     )
                 }
             )
@@ -200,8 +254,8 @@ fun BatteryExtraInformation(
                 trailing = {
                     Text(
                         text = myDevice.technology,
-                        style = MaterialTheme.typography.metricSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = rowValueStyle,
+                        color = rowValueColor
                     )
                 }
             )
@@ -215,8 +269,8 @@ fun BatteryExtraInformation(
                 trailing = {
                     Text(
                         text = myDevice.cycleCount.toString(),
-                        style = MaterialTheme.typography.metricSmall,
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = rowValueStyle,
+                        color = rowValueColor
                     )
                 }
             )

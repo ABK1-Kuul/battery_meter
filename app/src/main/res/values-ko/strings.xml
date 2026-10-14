@@ -127,4 +127,20 @@
     <string name="chart_range_all">전체</string>
     <string name="chart_history">기록</string>
     <string name="no_chart_data">아직 기록된 기록 데이터가 없습니다</string>
+    <string name="glass_theme">글래스 테마</string>
+    <string name="glass_theme_desc">도트 매트릭스 타이포그래피와 반투명 글래스 디자인</string>
+    <string name="glass_accent">강조 색상</string>
+    <string name="glass_accent_red">레드</string>
+    <string name="glass_accent_mono">모노</string>
+    <string name="glass_frost">프로스트 블러</string>
+    <string name="font_doto_license">Doto 폰트 (OFL 1.1)</string>
+    <string name="widget_style_dot_ring">도트 링</string>
+    <string name="widget_style_glyph_bar">글리프 바</string>
+    <string name="widget_style_dot">도트</string>
+    <string name="widget_style_matrix_tile">매트릭스 타일</string>
+    <string name="widget_style_liquid_tube">리퀴드 튜브</string>
+    <string name="widget_style_orbit">오빗</string>
+    <string name="widget_style_stat_pill">스탯 필</string>
+    <string name="widget_accent">위젯 강조 색상</string>
+    <string name="widget_frost">위젯 프로스트</string>
 </resources>
