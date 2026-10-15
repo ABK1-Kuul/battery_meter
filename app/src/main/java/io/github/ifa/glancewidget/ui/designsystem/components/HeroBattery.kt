@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.ui.component.AnimatedCounter
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppMotion
@@ -101,13 +102,17 @@ fun HeroBattery(
                 ) {
                     for (i in 0 until totalDots) {
                         val isLit = i < litDots
+                        val isHead = isLit && (i == litDots - 1)
+                        val dotColor = when {
+                            isHead -> MaterialTheme.colorScheme.primary
+                            isLit -> io.github.ifa.glancewidget.ui.glass.GlassAccentMono
+                            else -> GlassBorder
+                        }
                         Box(
                             modifier = Modifier
                                 .size(6.dp)
                                 .clip(CircleShape)
-                                .background(
-                                    if (isLit) MaterialTheme.colorScheme.primary else GlassBorder
-                                )
+                                .background(dotColor)
                         )
                     }
                 }
@@ -181,19 +186,23 @@ fun HeroBattery(
                             )
                         }
 
-                        Text(
-                            text = model.statusLine.asString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = toneColors.onContainer
-                        )
                     }
                 }
 
+                Spacer(modifier = Modifier.height(Spacing.s))
+                Text(
+                    text = model.statusLine.asString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = toneColors.onContainer,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 if (chips.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(Spacing.m))
-                    Row(
+                    FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalArrangement = Arrangement.spacedBy(Spacing.s),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         chips.forEach { chip ->

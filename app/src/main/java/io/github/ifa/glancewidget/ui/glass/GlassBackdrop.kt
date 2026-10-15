@@ -34,8 +34,8 @@ fun GlassBackdrop(
     }
 
     val primaryAccent = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-    val secondaryBlob = MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f)
-    val tertiaryBlob = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.08f)
+    val blueBlob = GlassBlobBlue
+    val tealBlob = GlassBlobTeal
 
     val hazeModifier = if (hazeState != null) {
         modifier.hazeSource(state = hazeState)
@@ -59,19 +59,19 @@ fun GlassBackdrop(
             )
             drawRect(brush = accentBrush)
 
-            val secondaryBrush = Brush.radialGradient(
-                colors = listOf(secondaryBlob, Color.Transparent),
+            val blueBrush = Brush.radialGradient(
+                colors = listOf(blueBlob, Color.Transparent),
                 center = Offset(width * 0.85f, height * 0.45f),
                 radius = width * 0.60f
             )
-            drawRect(brush = secondaryBrush)
+            drawRect(brush = blueBrush)
 
-            val tertiaryBrush = Brush.radialGradient(
-                colors = listOf(tertiaryBlob, Color.Transparent),
+            val tealBrush = Brush.radialGradient(
+                colors = listOf(tealBlob, Color.Transparent),
                 center = Offset(width * 0.25f, height * 0.80f),
                 radius = width * 0.50f
             )
-            drawRect(brush = tertiaryBrush)
+            drawRect(brush = tealBrush)
         }
 
         content()

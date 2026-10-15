@@ -41,6 +41,7 @@ import io.github.ifa.glancewidget.ui.gravity.PillWidth
 import androidx.compose.foundation.BorderStroke
 import io.github.ifa.glancewidget.ui.glass.GlassBorder
 import io.github.ifa.glancewidget.ui.glass.GlassHighlight
+import io.github.ifa.glancewidget.ui.glass.GlassSurface
 import io.github.ifa.glancewidget.ui.glass.GlassSurfaceContainerHigh
 import io.github.ifa.glancewidget.ui.glass.GlassTextPrimary
 import io.github.ifa.glancewidget.ui.glass.GlassTextSecondary
@@ -55,54 +56,39 @@ fun GravityNavPill(
     onBoundsChanged: (Rect) -> Unit = {}
 ) {
     val isGlassTheme = LocalIsGlassTheme.current
-    val containerColor = if (isGlassTheme) GlassSurfaceContainerHigh else MaterialTheme.colorScheme.primaryContainer
-    val contentColor = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onPrimaryContainer
-    val borderStroke = if (isGlassTheme) BorderStroke(1.dp, GlassBorder) else null
+    val commonModifier = modifier
+        .onGloballyPositioned { coordinates ->
+            if (coordinates.isAttached) {
+                onBoundsChanged(coordinates.boundsInRoot())
+            }
+        }
+        .graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        }
+        .width(PillWidth)
+        .wrapContentHeight()
 
-    Surface(
-        modifier = modifier
-            .onGloballyPositioned { coordinates ->
-                if (coordinates.isAttached) {
-                    onBoundsChanged(coordinates.boundsInRoot())
-                }
-            }
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .width(PillWidth)
-            .wrapContentHeight(),
-        shape = CircleShape,
-        color = containerColor,
-        contentColor = contentColor,
-        border = borderStroke,
-        shadowElevation = if (isGlassTheme) 0.dp else 6.dp
-    ) {
-        Column(
-            modifier = Modifier.padding(vertical = Spacing.m, horizontal = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterVertically)
+    if (isGlassTheme) {
+        GlassSurface(
+            modifier = commonModifier,
+            shape = CircleShape
         ) {
-            MainScreenTab.entries.forEach { item ->
-                val isSelected = item == selectedTab
-                val labelText = stringResource(item.label)
-
-                if (isSelected) {
-                    val selectedBgColor = if (isGlassTheme) GlassHighlight else MaterialTheme.colorScheme.primary
-                    val selectedIconColor = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onPrimary
-                    val selectedTextColor = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onPrimary
+            Column(
+                modifier = Modifier.padding(vertical = Spacing.m, horizontal = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterVertically)
+            ) {
+                MainScreenTab.entries.forEach { item ->
+                    val isSelected = item == selectedTab
+                    val labelText = stringResource(item.label)
 
                     Box(
                         modifier = Modifier
-                            .size(width = 48.dp, height = if (isGlassTheme) 68.dp else 60.dp)
-                            .clip(RoundedCornerShape(22.dp))
-                            .background(
-                                color = selectedBgColor,
-                                shape = RoundedCornerShape(22.dp)
-                            )
+                            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                             .semantics {
                                 role = Role.Tab
-                                selected = true
+                                selected = isSelected
                                 contentDescription = labelText
                             }
                             .clickable { onTabSelected(item) },
@@ -113,23 +99,12 @@ fun GravityNavPill(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Icon(
-                                painter = painterResource(item.selectedIcon),
+                                painter = painterResource(if (isSelected) item.selectedIcon else item.icon),
                                 contentDescription = null,
                                 modifier = Modifier.size(20.dp),
-                                tint = selectedIconColor
+                                tint = if (isSelected) io.github.ifa.glancewidget.ui.glass.GlassAccentMono else io.github.ifa.glancewidget.ui.glass.GlassIconUnselected
                             )
-                            Text(
-                                text = labelText,
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 11.sp,
-                                    lineHeight = 12.sp
-                                ),
-                                color = selectedTextColor,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            if (isGlassTheme) {
+                            if (isSelected) {
                                 Box(
                                     modifier = Modifier
                                         .padding(top = 3.dp)
@@ -140,31 +115,91 @@ fun GravityNavPill(
                             }
                         }
                     }
-                } else {
-                    val unselectedColor = if (isGlassTheme) GlassTextSecondary else MaterialTheme.colorScheme.onPrimaryContainer
-                    Box(
-                        modifier = Modifier
-                            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                            .semantics {
-                                role = Role.Tab
-                                selected = false
-                                contentDescription = labelText
-                            }
-                            .clickable { onTabSelected(item) },
-                        contentAlignment = Alignment.Center
-                    ) {
+                }
+            }
+        }
+    } else {
+        Surface(
+            modifier = commonModifier,
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            shadowElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(vertical = Spacing.m, horizontal = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Spacing.s, Alignment.CenterVertically)
+            ) {
+                MainScreenTab.entries.forEach { item ->
+                    val isSelected = item == selectedTab
+                    val labelText = stringResource(item.label)
+
+                    if (isSelected) {
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
-                                .clip(CircleShape),
+                                .size(width = PillWidth - 8.dp, height = 60.dp)
+                                .clip(RoundedCornerShape(22.dp))
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(22.dp)
+                                )
+                                .semantics {
+                                    role = Role.Tab
+                                    selected = true
+                                    contentDescription = labelText
+                                }
+                                .clickable { onTabSelected(item) },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                painter = painterResource(item.icon),
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = unselectedColor
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(item.selectedIcon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                                Text(
+                                    text = labelText,
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 10.sp,
+                                        lineHeight = 11.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                                .semantics {
+                                    role = Role.Tab
+                                    selected = false
+                                    contentDescription = labelText
+                                }
+                                .clickable { onTabSelected(item) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .clip(CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(item.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
                         }
                     }
                 }

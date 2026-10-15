@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.features.battery.BatteryMonitorViewModel
 import io.github.ifa.glancewidget.glance.glass.GlassBitmapRenderer
+import io.github.ifa.glancewidget.glance.glass.GlassWidgetFlags
 import io.github.ifa.glancewidget.glance.glass.WidgetBitmapCacheKey
 import io.github.ifa.glancewidget.model.AddWidgetParams
 import io.github.ifa.glancewidget.model.ChartRecord
@@ -64,6 +65,8 @@ fun AddWidgetBottomSheet(
     var selectedTransparencyIndex by remember { mutableIntStateOf(0) }
     var selectedAccentIndex by remember { mutableIntStateOf(0) }
 
+    val visibleStyleCount = if (GlassWidgetFlags.ENABLED) 9 else GlassWidgetFlags.CLASSIC_STYLE_COUNT
+
     val styles = listOf(
         WidgetSetting.Style.Horizontal,
         WidgetSetting.Style.Circle,
@@ -74,7 +77,7 @@ fun AddWidgetBottomSheet(
         WidgetSetting.Style.LiquidTube,
         WidgetSetting.Style.Orbit,
         WidgetSetting.Style.StatPill
-    )
+    ).take(visibleStyleCount)
 
     val styleOptions = listOf(
         stringResource(R.string.widget_style_horizontal),
@@ -86,7 +89,7 @@ fun AddWidgetBottomSheet(
         stringResource(R.string.widget_style_liquid_tube),
         stringResource(R.string.widget_style_orbit),
         stringResource(R.string.widget_style_stat_pill)
-    )
+    ).take(visibleStyleCount)
 
     val accents = listOf(
         WidgetAccent.Red,

@@ -141,6 +141,7 @@ fun MainScreen(
                 val navBackStackEntry by mainTabNavController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
                 val currentTab = MainScreenTab.entries.find { it.route == currentRoute } ?: MainScreenTab.Widget
+                val isTabRoute = MainScreenTab.entries.any { it.route == currentRoute }
 
                 Box(
                     modifier = Modifier
@@ -156,7 +157,7 @@ fun MainScreen(
                     ) {
                         mainNavGraph(contentPadding, snackbarHostState)
                     }
-                    GravityNavPill(
+                    if (isTabRoute) GravityNavPill(
                         selectedTab = currentTab,
                         onTabSelected = { tab ->
                             if (tab.route != currentRoute) {

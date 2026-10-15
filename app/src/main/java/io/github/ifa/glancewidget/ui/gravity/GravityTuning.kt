@@ -22,7 +22,7 @@ val AvoidanceLead = 40.dp
 val AvoidanceGap = 10.dp
 const val MinInsetThreshold = 0.5f
 
-val PillWidth = 56.dp
+val PillWidth = 64.dp
 val PillEndMargin = 8.dp
 
 fun avoidanceFraction(distance: Float, lead: Float): Float {

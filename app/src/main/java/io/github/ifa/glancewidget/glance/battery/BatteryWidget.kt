@@ -33,6 +33,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
 import io.github.ifa.glancewidget.glance.glass.GlassBitmapRenderer
+import io.github.ifa.glancewidget.glance.glass.GlassWidgetFlags
 import io.github.ifa.glancewidget.glance.glass.WidgetBitmapCacheKey
 import io.github.ifa.glancewidget.model.WidgetAccent
 import kotlinx.coroutines.flow.firstOrNull
@@ -142,7 +143,9 @@ class BatteryWidget : GlanceAppWidget() {
         }
 
         val widgetStyle = remember(setting) {
-            setting?.style ?: WidgetSetting.Style.Horizontal
+            val saved = setting?.style ?: WidgetSetting.Style.Horizontal
+            val isClassic = saved == WidgetSetting.Style.Horizontal || saved == WidgetSetting.Style.Circle
+            if (GlassWidgetFlags.ENABLED || isClassic) saved else WidgetSetting.Style.Horizontal
         }
 
         when (widgetStyle) {
