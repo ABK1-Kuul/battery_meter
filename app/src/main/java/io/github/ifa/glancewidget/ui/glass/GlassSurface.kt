@@ -8,7 +8,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -77,7 +77,7 @@ object GlassNoiseCache {
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(16.dp),
+    shape: Shape = AppShape.inner,
     hazeState: HazeState? = LocalHazeState.current,
     content: @Composable () -> Unit
 ) {

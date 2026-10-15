@@ -40,7 +40,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -153,7 +153,7 @@ fun ThemeSetting(
                                 GlassAccent.Mono -> GlassAccentMono
                             }
                             Surface(
-                                shape = RoundedCornerShape(12.dp),
+                                shape = AppShape.inner,
                                 color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
                                 border = BorderStroke(
                                     1.dp,
