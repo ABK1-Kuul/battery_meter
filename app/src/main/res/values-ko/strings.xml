@@ -144,4 +144,13 @@
     <string name="widget_accent">위젯 강조 색상</string>
     <string name="widget_frost">위젯 프로스트</string>
     <string name="widget_accent_follow_tone">상태 색상 연동</string>
+    <string name="estimated_capacity_health">예상 배터리 수명</string>
+    <string name="hardware_diagnostic">하드웨어 진단</string>
+    <string name="calibrating_capacity">측정 중</string>
+    <string name="calibrating_capacity_desc">배터리 수명을 정확히 계산하려면 완전 충전 주기가 필요합니다.</string>
+    <string name="battery_parameters">실시간 상태</string>
+    <string name="battery_longevity_tip_title">배터리 수명 팁</string>
+    <string name="battery_longevity_tip_desc" formatted="false">배터리 수명을 최적화하려면 충전량을 20%~80% 사이로 유지하고 온도를 35°C 이하로 유지하세요.</string>
+    <string name="power_source">전원 공급원</string>
+    <string name="wear_level">배터리 마모율</string>
 </resources>

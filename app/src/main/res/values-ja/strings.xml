@@ -145,4 +145,13 @@
     <string name="widget_accent">ウィジェットのアクセント</string>
     <string name="widget_frost">ウィジェットのフロスト</string>
     <string name="widget_accent_follow_tone">状態連動</string>
+    <string name="estimated_capacity_health">推定バッテリー状態</string>
+    <string name="hardware_diagnostic">ハードウェア診断</string>
+    <string name="calibrating_capacity">調整中</string>
+    <string name="calibrating_capacity_desc">バッテリー容量の劣化を正確に測定するには完全な充電サイクルが必要です。</string>
+    <string name="battery_parameters">リアルタイム情報</string>
+    <string name="battery_longevity_tip_title">寿命を延ばすヒント</string>
+    <string name="battery_longevity_tip_desc" formatted="false">バッテリーを長持ちさせるには、充電残量を20%〜80%に保ち、温度を35°C未満に維持してください。</string>
+    <string name="power_source">給電元</string>
+    <string name="wear_level">バッテリー劣化度</string>
 </resources>

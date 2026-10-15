@@ -20,7 +20,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import io.github.ifa.glancewidget.R
-import io.github.ifa.glancewidget.features.health.component.BatteryExtraInformation
+import io.github.ifa.glancewidget.features.health.component.HealthLongevityCard
+import io.github.ifa.glancewidget.features.health.component.HealthCapacityGroup
+import io.github.ifa.glancewidget.features.health.component.HealthHardwareGroup
+import io.github.ifa.glancewidget.features.health.component.HealthHeroCard
+import io.github.ifa.glancewidget.features.health.component.HealthMetricsRow
+import io.github.ifa.glancewidget.features.health.component.HealthMetricsSecondRow
 import io.github.ifa.glancewidget.model.BatteryData
 import io.github.ifa.glancewidget.model.ChargeDisChargeCurrent
 import io.github.ifa.glancewidget.model.ExtraBatteryInfo
@@ -32,6 +37,7 @@ import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import io.github.ifa.glancewidget.ui.gravity.gravityItem
 import io.github.ifa.glancewidget.ui.gravity.pillAvoidance
+import io.github.ifa.glancewidget.utils.combinePadding
 
 const val healthScreenRoute = "health_screen_route"
 
@@ -71,17 +77,57 @@ private fun HealthScreen(
         scrollBehavior = scrollBehavior,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { scaffoldPadding ->
+        val insets = combinePadding(scaffoldPadding, contentPadding)
         LazyColumn(
-            contentPadding = scaffoldPadding,
+            contentPadding = insets,
             verticalArrangement = Arrangement.spacedBy(Spacing.l),
             modifier = Modifier.fillMaxSize()
         ) {
             item {
-                BatteryExtraInformation(
+                HealthHeroCard(
                     batteryDataWrapper = uiState.batteryOverall,
                     modifier = Modifier
                         .pillAvoidance()
-                        .gravityItem("health_extra")
+                        .gravityItem("health_hero")
+                )
+            }
+            item {
+                HealthMetricsRow(
+                    batteryDataWrapper = uiState.batteryOverall,
+                    modifier = Modifier
+                        .pillAvoidance()
+                        .gravityItem("health_metrics_1")
+                )
+            }
+            item {
+                HealthMetricsSecondRow(
+                    batteryDataWrapper = uiState.batteryOverall,
+                    modifier = Modifier
+                        .pillAvoidance()
+                        .gravityItem("health_metrics_2")
+                )
+            }
+            item {
+                HealthCapacityGroup(
+                    batteryDataWrapper = uiState.batteryOverall,
+                    modifier = Modifier
+                        .pillAvoidance()
+                        .gravityItem("health_capacity")
+                )
+            }
+            item {
+                HealthHardwareGroup(
+                    batteryDataWrapper = uiState.batteryOverall,
+                    modifier = Modifier
+                        .pillAvoidance()
+                        .gravityItem("health_hardware")
+                )
+            }
+            item {
+                HealthLongevityCard(
+                    modifier = Modifier
+                        .pillAvoidance()
+                        .gravityItem("health_advice")
                 )
             }
         }
@@ -97,7 +143,8 @@ fun HealthScreenPreview() {
             isCharging = false,
             temperature = MyDevice.Temperature(temperature = 28.0f),
             voltage = 4.05f,
-            cycleCount = 142
+            cycleCount = 142,
+            technology = "Li-ion"
         )
         val sampleBatteryData = BatteryData(
             myDevice = sampleMyDevice,
@@ -106,7 +153,8 @@ fun HealthScreenPreview() {
         val sampleExtraBatteryInfo = ExtraBatteryInfo(
             capacity = 5000,
             fullChargeCapacity = 4750,
-            chargeCounter = 3800
+            chargeCounter = 3800,
+            chargeCurrent = -450
         )
         val sampleUiState = HealthViewModel.HealthScreenUiState(
             batteryOverall = BatteryDataWrapper(

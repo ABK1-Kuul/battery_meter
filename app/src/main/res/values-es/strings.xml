@@ -144,4 +144,13 @@
     <string name="widget_accent">Acento del widget</string>
     <string name="widget_frost">Esmerilado del widget</string>
     <string name="widget_accent_follow_tone">Según el estado</string>
+    <string name="estimated_capacity_health">Salud estimada</string>
+    <string name="hardware_diagnostic">Diagnóstico de hardware</string>
+    <string name="calibrating_capacity">Calibrando</string>
+    <string name="calibrating_capacity_desc">Se requieren ciclos de carga completos para calcular con precisión el desgaste de la batería.</string>
+    <string name="battery_parameters">Parámetros en vivo</string>
+    <string name="battery_longevity_tip_title">Consejo de longevidad</string>
+    <string name="battery_longevity_tip_desc" formatted="false">Para una vida útil óptima, mantenga la carga entre el 20 % y el 80 % y la temperatura por debajo de 35 °C.</string>
+    <string name="power_source">Fuente de alimentación</string>
+    <string name="wear_level">Desgaste de batería</string>
 </resources>

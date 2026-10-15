@@ -154,4 +154,13 @@
     <string name="widget_accent">Widget Accent</string>
     <string name="widget_frost">Widget Frost</string>
     <string name="widget_accent_follow_tone">Follow Tone</string>
+    <string name="estimated_capacity_health">Estimated Capacity Health</string>
+    <string name="hardware_diagnostic">Hardware Diagnostic</string>
+    <string name="calibrating_capacity">Calibrating</string>
+    <string name="calibrating_capacity_desc">Requires complete charge cycles to calculate battery capacity wear accurately.</string>
+    <string name="battery_parameters">Live Parameters</string>
+    <string name="battery_longevity_tip_title">Battery Longevity Tip</string>
+    <string name="battery_longevity_tip_desc" formatted="false">For optimal lithium-ion lifespan, maintain charge between 20% and 80% and keep temperatures below 35°C.</string>
+    <string name="power_source">Power Source</string>
+    <string name="wear_level">Battery Wear</string>
 </resources>

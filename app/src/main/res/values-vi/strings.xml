@@ -145,4 +145,13 @@
     <string name="widget_accent">Điểm nhấn tiện ích</string>
     <string name="widget_frost">Độ mờ tiện ích</string>
     <string name="widget_accent_follow_tone">Theo trạng thái</string>
+    <string name="estimated_capacity_health">Dung lượng ước tính</string>
+    <string name="hardware_diagnostic">Chẩn đoán phần cứng</string>
+    <string name="calibrating_capacity">Đang hiệu chỉnh</string>
+    <string name="calibrating_capacity_desc">Cần một vài chu kỳ sạc đầy đủ để tính toán chính xác độ hao mòn dung lượng pin.</string>
+    <string name="battery_parameters">Thông số trực tiếp</string>
+    <string name="battery_longevity_tip_title">Mẹo kéo dài tuổi thọ</string>
+    <string name="battery_longevity_tip_desc" formatted="false">Để tối ưu tuổi thọ pin, hãy duy trì mức sạc từ 20% đến 80% và giữ nhiệt độ dưới 35°C.</string>
+    <string name="power_source">Nguồn sạc</string>
+    <string name="wear_level">Độ hao mòn</string>
 </resources>

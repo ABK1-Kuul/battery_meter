@@ -145,4 +145,13 @@
     <string name="widget_accent">Accent du widget</string>
     <string name="widget_frost">Dépoli du widget</string>
     <string name="widget_accent_follow_tone">Selon l\'état</string>
+    <string name="estimated_capacity_health">Santé estimée</string>
+    <string name="hardware_diagnostic">Diagnostic matériel</string>
+    <string name="calibrating_capacity">Étalonnage</string>
+    <string name="calibrating_capacity_desc">Plusieurs cycles de charge complets sont nécessaires pour calculer précisément l\'usure de la batterie.</string>
+    <string name="battery_parameters">Paramètres en direct</string>
+    <string name="battery_longevity_tip_title">Conseil de longévité</string>
+    <string name="battery_longevity_tip_desc" formatted="false">Pour une durée de vie optimale, maintenez la charge entre 20 % et 80 % et la température sous 35 °C.</string>
+    <string name="power_source">Source d\'alimentation</string>
+    <string name="wear_level">Usure de la batterie</string>
 </resources>
