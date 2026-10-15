@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -67,8 +68,6 @@ import io.github.ifa.glancewidget.ui.theme.glassLabel
 import io.github.ifa.glancewidget.ui.theme.metricLarge
 import io.github.ifa.glancewidget.ui.theme.metricSmall
 import io.github.ifa.glancewidget.utils.Constants.MAH_UNIT
-import java.util.Locale
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 private fun calculateCapacityHealth(extraBatteryInfo: ExtraBatteryInfo): Int? {
@@ -136,19 +135,11 @@ fun HealthHeroCard(
                     contentAlignment = Alignment.Center
                 ) {
                     DotRingIndicator(
-                        progress = animatedProgress,
-                        totalDots = 48,
-                        ringSize = 180.dp,
-                        dotRadius = 3.dp,
-                        litColor = MaterialTheme.colorScheme.primary,
-                        unlitColor = GlassBorder
+                        progress = animatedProgress
                     )
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         DotMatrixText(
                             text = "$displayPercent%",
-                            dotSize = 3.dp,
-                            dotSpacing = 1.dp,
-                            charSpacing = 3.dp,
                             tint = GlassTextPrimary
                         )
                         Spacer(modifier = Modifier.height(Spacing.xs))
@@ -216,7 +207,7 @@ fun HealthHeroCard(
                             width = 16f,
                             cap = StrokeCap.Round,
                         ),
-                        wavelength = 32.dp
+                        wavelength = Spacing.xxl
                     )
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Row(verticalAlignment = Alignment.Bottom) {
@@ -280,15 +271,16 @@ fun HealthMetricsRow(
     modifier: Modifier = Modifier
 ) {
     val myDevice = batteryDataWrapper.batteryData.myDevice
+    val locale = LocalConfiguration.current.locales[0]
 
     val voltageText = if (myDevice.voltage > 0f) {
-        String.format(Locale.getDefault(), "%.2f", myDevice.voltage)
+        String.format(locale, "%.2f", myDevice.voltage)
     } else {
         "--"
     }
 
     val tempText = if (myDevice.temperature.temperature > 0f) {
-        String.format(Locale.getDefault(), "%.1f", myDevice.temperature.temperature)
+        String.format(locale, "%.1f", myDevice.temperature.temperature)
     } else {
         "--"
     }
@@ -498,7 +490,7 @@ fun HealthHardwareGroup(
     val cycleText = if (myDevice.cycleCount > 0) myDevice.cycleCount.toString() else "--"
 
     SettingsGroup(
-        title = stringResource(id = R.string.technology),
+        title = stringResource(id = R.string.battery_parameters),
         modifier = modifier
     ) {
         SettingsRow(
@@ -578,7 +570,7 @@ fun HealthLongevityCard(
                 imageVector = Icons.Rounded.Lightbulb,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(Spacing.xl)
             )
             Column(
                 modifier = Modifier.weight(1f),
@@ -634,6 +626,46 @@ fun BatteryExtraInformation(
         HealthMetricsSecondRow(batteryDataWrapper = batteryDataWrapper)
         HealthCapacityGroup(batteryDataWrapper = batteryDataWrapper)
         HealthHardwareGroup(batteryDataWrapper = batteryDataWrapper)
+        HealthLongevityCard()
+    }
+}
+
+@ThemePreviews
+@Composable
+fun HealthHeroCardPreview() {
+    MaterialTheme {
+        HealthHeroCard(batteryDataWrapper = BatteryDataWrapper())
+    }
+}
+
+@ThemePreviews
+@Composable
+fun HealthMetricsRowPreview() {
+    MaterialTheme {
+        HealthMetricsRow(batteryDataWrapper = BatteryDataWrapper())
+    }
+}
+
+@ThemePreviews
+@Composable
+fun HealthCapacityGroupPreview() {
+    MaterialTheme {
+        HealthCapacityGroup(batteryDataWrapper = BatteryDataWrapper())
+    }
+}
+
+@ThemePreviews
+@Composable
+fun HealthHardwareGroupPreview() {
+    MaterialTheme {
+        HealthHardwareGroup(batteryDataWrapper = BatteryDataWrapper())
+    }
+}
+
+@ThemePreviews
+@Composable
+fun HealthLongevityCardPreview() {
+    MaterialTheme {
         HealthLongevityCard()
     }
 }
