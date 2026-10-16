@@ -43,10 +43,18 @@ class AppUsageViewModel @Inject constructor(
         )
     }
 
+    init {
+        checkPermission()
+    }
+
     fun setUsageRange(usageRange: AppUsageScreenUiState.UsageRange) {
         _usageRange.value = usageRange
         val (startTime, endTime) = usageRange.getRangeTime()
         appUsageRepository.onChangedUsageRange(startTime, endTime)
+    }
+
+    fun checkPermission() {
+        appUsageRepository.checkPermission()
     }
 }
 

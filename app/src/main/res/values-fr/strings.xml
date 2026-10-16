@@ -96,6 +96,12 @@
     <string name="cpu_time">CPU total</string>
     <string name="cpu_foreground">CPU premier plan</string>
     <string name="usage_time">Utilisation (heures)</string>
+    <string name="total_screen_time">Temps d\'écran total</string>
+    <string name="top_used_app">Application la plus utilisée</string>
+    <string name="no_usage_data">Aucune donnée d\'utilisation pour cette période</string>
+    <string name="usage_breakdown">Répartition de l\'utilisation</string>
+    <string name="screen_time">Temps d\'écran</string>
+    <string name="foreground">Premier plan</string>
     <string name="force_reload">"Recharger de force"</string>
     <string name="bluetooth_device_setting">Appareils Bluetooth appairés. Basculer pour masquer ou afficher dans le widget</string>
     <string name="battery">Batterie</string>

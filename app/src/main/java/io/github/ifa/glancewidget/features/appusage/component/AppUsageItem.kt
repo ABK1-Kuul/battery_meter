@@ -2,10 +2,10 @@ package io.github.ifa.glancewidget.features.appusage.component
 
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,12 +28,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
-import androidx.compose.foundation.clickable
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import io.github.ifa.glancewidget.ui.glass.GlassSurface
 import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.theme.glassLabel
+import io.github.ifa.glancewidget.ui.theme.glassMetricSmall
 import io.github.ifa.glancewidget.ui.theme.metricSmall
 
 @Composable
@@ -62,7 +63,7 @@ fun AppUsageItem(
                     bitmap = appIcon.toBitmap().asImageBitmap(),
                     contentDescription = appName,
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(42.dp)
                         .clip(AppShape.inner),
                     contentScale = ContentScale.Fit
                 )
@@ -76,11 +77,19 @@ fun AppUsageItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+
+                    if (progress > 0f) {
+                        Text(
+                            text = "${(progress * 100).toInt()}%",
+                            style = MaterialTheme.typography.glassLabel,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 Text(
                     text = usageTime.formatDuration(),
-                    style = MaterialTheme.typography.metricSmall,
+                    style = if (isGlassTheme) MaterialTheme.typography.glassMetricSmall else MaterialTheme.typography.metricSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
 
@@ -126,7 +135,6 @@ fun AppUsageItem(
             itemContent()
         }
     }
-
 }
 
 @ThemePreviews
@@ -136,10 +144,10 @@ fun AppUsageItemPreview() {
     val defaultAppIcon = context.packageManager.defaultActivityIcon
     MaterialTheme {
         AppUsageItem(
-            appName = "Sample App",
+            appName = "YouTube",
             appIcon = defaultAppIcon,
-            usageTime = 120000L,
-            progress = 0.65f,
+            usageTime = 7200000L,
+            progress = 0.75f,
             onAppClick = {}
         )
     }

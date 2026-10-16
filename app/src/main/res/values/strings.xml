@@ -105,6 +105,12 @@
     <string name="cpu_time">CPU total</string>
     <string name="cpu_foreground">CPU foreground</string>
     <string name="usage_time">Usage (hours)</string>
+    <string name="total_screen_time">Total Screen Time</string>
+    <string name="top_used_app">Most Used App</string>
+    <string name="no_usage_data">No usage data found for this period</string>
+    <string name="usage_breakdown">Usage Breakdown</string>
+    <string name="screen_time">Screen Time</string>
+    <string name="foreground">Foreground</string>
     <string name="force_reload">"Force Reload"</string>
     <string name="bluetooth_device_setting">Bluetooth paired devices. Toggle to hide or show in widget</string>
     <string name="battery">Battery</string>

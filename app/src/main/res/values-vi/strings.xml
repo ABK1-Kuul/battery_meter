@@ -96,6 +96,12 @@
     <string name="cpu_time">Tổng CPU</string>
     <string name="cpu_foreground">CPU nền trước</string>
     <string name="usage_time">Sử dụng (giờ)</string>
+    <string name="total_screen_time">Tổng thời gian màn hình</string>
+    <string name="top_used_app">Ứng dụng dùng nhiều nhất</string>
+    <string name="no_usage_data">Không tìm thấy dữ liệu sử dụng cho giai đoạn này</string>
+    <string name="usage_breakdown">Phân tích mức sử dụng</string>
+    <string name="screen_time">Thời gian màn hình</string>
+    <string name="foreground">Chạy trên màn hình</string>
     <string name="force_reload">"Tải lại"</string>
     <string name="bluetooth_device_setting">Thiết bị Bluetooth đã ghép nối. Chuyển đổi để ẩn hoặc hiển thị trong tiện ích</string>
     <string name="battery">Pin</string>

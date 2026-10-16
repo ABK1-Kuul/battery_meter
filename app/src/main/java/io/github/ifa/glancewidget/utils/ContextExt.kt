@@ -179,9 +179,20 @@ fun Context.checkAppUsagePermission(): Boolean {
     val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         appOps.unsafeCheckOpNoThrow(OPSTR_GET_USAGE_STATS, myUid(), packageName)
     } else {
+        @Suppress("DEPRECATION")
         appOps.checkOpNoThrow(OPSTR_GET_USAGE_STATS, myUid(), packageName)
     }
-    return mode == AppOpsManager.MODE_ALLOWED
+    if (mode == AppOpsManager.MODE_ALLOWED) {
+        return true
+    }
+    val usageStatsManager = getUsageStatsManager() ?: return false
+    val now = System.currentTimeMillis()
+    val stats = usageStatsManager.queryUsageStats(
+        UsageStatsManager.INTERVAL_DAILY,
+        now - 1000 * 60 * 60,
+        now
+    )
+    return !stats.isNullOrEmpty()
 }
 
 fun Context.getUsageStatsManager(): UsageStatsManager? {
@@ -194,8 +205,8 @@ fun Context.getInstalledApps(): List<String> {
     val installedApps = packageManager.getInstalledApplications(flags).map { it.packageName }
     val intent = Intent(Intent.ACTION_MAIN, null)
     intent.addCategory(Intent.CATEGORY_LAUNCHER)
-    val resolvedApps = packageManager.queryIntentActivities(intent, flags).map { it.toString() }
-    return installedApps + resolvedApps
+    val resolvedApps = packageManager.queryIntentActivities(intent, flags).mapNotNull { it.activityInfo?.packageName }
+    return (installedApps + resolvedApps).distinct()
 }
 
 fun Context.startBatteryStatus() {

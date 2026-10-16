@@ -96,6 +96,12 @@
     <string name="cpu_time">CPU合計</string>
     <string name="cpu_foreground">CPU前面プラン</string>
     <string name="usage_time">使用時間（時間）</string>
+    <string name="total_screen_time">合計画面時間</string>
+    <string name="top_used_app">最も使用されたアプリ</string>
+    <string name="no_usage_data">この期間の使用状況データはありません</string>
+    <string name="usage_breakdown">使用状況の内訳</string>
+    <string name="screen_time">画面時間</string>
+    <string name="foreground">フォアグラウンド</string>
     <string name="force_reload">"強制リロード"</string>
     <string name="bluetooth_device_setting">Bluetoothペアリングデバイス。ウィジェットで非表示または表示を切り替えます。</string>
     <string name="battery">バッテリー</string>

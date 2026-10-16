@@ -27,11 +27,13 @@ class DefaultAppUsageRepository(
 
     override fun getAppUsageStats(): Flow<List<UsageStatsWrapper>> {
         val usageStatsManager = context.getUsageStatsManager()
-        val installedApp = context.getInstalledApps()
         return combine(
             startTime,
-            endTime
-        ) { start, end ->
+            endTime,
+            _hasAppUsagePermission
+        ) { start, end, hasPermission ->
+            if (!hasPermission) return@combine emptyList()
+            val installedApp = context.getInstalledApps()
             val usageStats = usageStatsManager
                 ?.queryAndAggregateUsageStats(start, end)?.values?.toList()
                 ?.filter { it.totalTimeInForeground > 60 * 1000 }
@@ -52,16 +54,21 @@ class DefaultAppUsageRepository(
         _hasAppUsagePermission.value = context.checkAppUsagePermission()
     }
 
+    override fun checkPermission() {
+        _hasAppUsagePermission.value = context.checkAppUsagePermission()
+    }
+
     private fun buildUsageStatsWrapper(
         packageNames: List<String>,
         usageStats: List<UsageStats>
     ): List<UsageStatsWrapper> {
         val packageManager = context.packageManager
-        val statPackageNames = usageStats.map { it.packageName }
-        return packageNames.mapNotNull { packageName ->
-            if (statPackageNames.contains(packageName)) {
-                usageStats.firstOrNull { it.packageName == packageName }
-                    ?.toUsageStatsWrapper(packageManager, packageName)
+        val statMap = usageStats.associateBy { it.packageName }
+        val allPackageNames = (packageNames.toSet() + statMap.keys).toList()
+        return allPackageNames.mapNotNull { packageName ->
+            val stat = statMap[packageName]
+            if (stat != null) {
+                stat.toUsageStatsWrapper(packageManager, packageName)
             } else {
                 null
             }

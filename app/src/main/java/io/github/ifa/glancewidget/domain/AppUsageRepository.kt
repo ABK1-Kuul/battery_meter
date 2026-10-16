@@ -11,6 +11,7 @@ interface AppUsageRepository {
     fun hasAppUsagePermission(): Flow<Boolean>
 
     fun onChangedUsageRange(start: Long, end: Long)
+    fun checkPermission()
 }
 
 @Composable

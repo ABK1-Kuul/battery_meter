@@ -9,10 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -34,9 +33,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.ifa.glancewidget.R
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.glass.GlassSurface
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -48,20 +53,16 @@ fun TimeRangePicker(
     initialEndTime: LocalTime = LocalTime.of(17, 0),
     onTimeRangeSelected: (startTime: LocalTime, endTime: LocalTime) -> Unit = { _, _ -> }
 ) {
-    // Time states
     var startTime by remember { mutableStateOf(initialStartTime) }
     var endTime by remember { mutableStateOf(initialEndTime) }
 
-    // Time picker dialog states
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
 
-    // Error state for invalid time range
     val isInvalidTimeRange by remember(startTime, endTime) {
         derivedStateOf { endTime.isBefore(startTime) || endTime == startTime }
     }
 
-    // Time picker states
     val startTimePickerState = rememberTimePickerState(
         initialHour = startTime.hour,
         initialMinute = startTime.minute
@@ -72,29 +73,22 @@ fun TimeRangePicker(
         initialMinute = endTime.minute
     )
 
-    // Formatter for displaying times
     val timeFormatter = remember { DateTimeFormatter.ofPattern("h:mm a") }
+    val isGlassTheme = LocalIsGlassTheme.current
 
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        shape = RoundedCornerShape(12.dp)
-    ) {
+    val cardContent = @Composable {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(Spacing.l)
         ) {
             Text(
-                text = "Time Range",
+                text = stringResource(R.string.usage_time),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Spacing.l))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -103,21 +97,21 @@ fun TimeRangePicker(
             ) {
                 TimeButton(
                     time = startTime.format(timeFormatter),
-                    label = "Start",
+                    label = stringResource(R.string.today),
                     modifier = Modifier.weight(1f),
                     onClick = { showStartTimePicker = true }
                 )
 
                 Icon(
-                    imageVector = Icons.Default.KeyboardArrowRight,
-                    contentDescription = "to",
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = Spacing.s)
                 )
 
                 TimeButton(
                     time = endTime.format(timeFormatter),
-                    label = "End",
+                    label = stringResource(R.string.today),
                     modifier = Modifier.weight(1f),
                     isError = isInvalidTimeRange,
                     onClick = { showEndTimePicker = true }
@@ -125,9 +119,9 @@ fun TimeRangePicker(
             }
 
             if (isInvalidTimeRange) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(Spacing.s))
                 Text(
-                    text = "End time must be after start time",
+                    text = stringResource(R.string.force_reload),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -135,7 +129,26 @@ fun TimeRangePicker(
         }
     }
 
-    // Start time picker dialog
+    if (isGlassTheme) {
+        GlassSurface(
+            modifier = modifier.fillMaxWidth(),
+            shape = AppShape.card
+        ) {
+            cardContent()
+        }
+    } else {
+        Card(
+            modifier = modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            shape = AppShape.card
+        ) {
+            cardContent()
+        }
+    }
+
     if (showStartTimePicker) {
         TimePickerDialog(
             onCancel = { showStartTimePicker = false },
@@ -143,16 +156,14 @@ fun TimeRangePicker(
                 val newStartTime = LocalTime.of(startTimePickerState.hour, startTimePickerState.minute)
                 startTime = newStartTime
 
-                // If the new start time creates an invalid range, adjust the end time
                 if (endTime.isBefore(newStartTime) || endTime == newStartTime) {
-                    // Add at least 30 minutes to the start time for the end time
                     endTime = newStartTime.plusMinutes(30)
                 }
 
                 onTimeRangeSelected(startTime, endTime)
                 showStartTimePicker = false
             },
-            title = "Select Start Time"
+            title = stringResource(R.string.usage_time)
         ) {
             TimePicker(
                 state = startTimePickerState,
@@ -166,7 +177,6 @@ fun TimeRangePicker(
         }
     }
 
-    // End time picker dialog
     if (showEndTimePicker) {
         TimePickerDialog(
             onCancel = { showEndTimePicker = false },
@@ -174,13 +184,10 @@ fun TimeRangePicker(
                 val newEndTime = LocalTime.of(endTimePickerState.hour, endTimePickerState.minute)
                 endTime = newEndTime
 
-                // If the new end time creates an invalid range, show the error
-                // The user will see the error message and can adjust times accordingly
-
                 onTimeRangeSelected(startTime, endTime)
                 showEndTimePicker = false
             },
-            title = "Select End Time"
+            title = stringResource(R.string.usage_time)
         ) {
             TimePicker(
                 state = endTimePickerState,
@@ -205,7 +212,7 @@ fun TimeButton(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
+        shape = AppShape.inner,
         border = BorderStroke(
             width = 1.dp,
             color = if (isError) MaterialTheme.colorScheme.error
@@ -214,7 +221,7 @@ fun TimeButton(
         onClick = onClick
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(Spacing.m),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -224,7 +231,7 @@ fun TimeButton(
                 else MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(Spacing.xs))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -234,10 +241,10 @@ fun TimeButton(
                     contentDescription = null,
                     tint = if (isError) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.width(16.dp)
+                    modifier = Modifier.width(Spacing.l)
                 )
 
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(Spacing.xs))
 
                 Text(
                     text = time,
@@ -268,7 +275,7 @@ fun TimePickerDialog(
                     contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
-                Text("OK")
+                Text(stringResource(R.string.allow))
             }
         },
         dismissButton = {
@@ -278,37 +285,21 @@ fun TimePickerDialog(
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             ) {
-                Text("Cancel")
+                Text(stringResource(R.string.not_now))
             }
         }
     )
 }
 
-@Preview(showBackground = true)
+@ThemePreviews
 @Composable
 fun TimeRangePickerPreview() {
     MaterialTheme {
         Surface(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(Spacing.l),
             color = MaterialTheme.colorScheme.background
         ) {
             TimeRangePicker()
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TimeRangePickerErrorPreview() {
-    MaterialTheme {
-        Surface(
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            TimeRangePicker(
-                initialStartTime = LocalTime.of(18, 0),
-                initialEndTime = LocalTime.of(9, 0)
-            )
         }
     }
 }
