@@ -28,7 +28,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -64,13 +64,11 @@ fun ThemeSetting(
     onSetGlassFrost: (Int) -> Unit = {}
 ) {
     val isGlassTheme = LocalIsGlassTheme.current
-    var isBlackDarkEnabled by remember(uiState.isBlackDarkEnabled) {
-        mutableStateOf(uiState.isBlackDarkEnabled)
-    }
-    val isDarkTheme = when (uiState.theme) {
-        ThemeType.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-        ThemeType.DARK_THEME -> true
-        ThemeType.LIGHT_THEME -> false
+    val isDarkTheme = when {
+        uiState.theme == ThemeType.LIGHT_THEME -> false
+        uiState.isGlassThemeEnabled -> true
+        uiState.theme == ThemeType.DARK_THEME -> true
+        else -> isSystemInDarkTheme()
     }
 
     Column(
@@ -89,7 +87,12 @@ fun ThemeSetting(
                 ThemeSettingItem(
                     modifier = Modifier.weight(1f),
                     themeType = theme,
-                    onSelectTheme = onSelectTheme,
+                    onSelectTheme = { selectedTheme ->
+                        if (selectedTheme == ThemeType.LIGHT_THEME && uiState.isGlassThemeEnabled) {
+                            onEnableGlassTheme(false)
+                        }
+                        onSelectTheme(selectedTheme)
+                    },
                     selected = theme == uiState.theme
                 )
             }
@@ -109,12 +112,9 @@ fun ThemeSetting(
                 leadingIcon = Icons.Rounded.Contrast,
                 trailing = {
                     Switch(
-                        checked = isBlackDarkEnabled,
+                        checked = uiState.isBlackDarkEnabled,
                         enabled = isDarkTheme,
-                        onCheckedChange = { checked ->
-                            isBlackDarkEnabled = checked
-                            onEnableBlackDark(checked)
-                        }
+                        onCheckedChange = onEnableBlackDark
                     )
                 }
             )
@@ -155,17 +155,22 @@ fun ThemeSetting(
                         style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Spacer(modifier = Modifier.height(Spacing.s))
-                    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-                        GlassAccent.entries.forEach { accent ->
+                    Spacer(modifier = Modifier.height(Spacing.m))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        listOf(GlassAccent.Red, GlassAccent.Mono, GlassAccent.Theme).forEach { accent ->
                             val isSelected = accent == uiState.glassAccent
                             val accentName = when (accent) {
                                 GlassAccent.Red -> stringResource(R.string.glass_accent_red)
                                 GlassAccent.Mono -> stringResource(R.string.glass_accent_mono)
+                                GlassAccent.Theme -> stringResource(R.string.theme)
                             }
                             val accentDotColor = when (accent) {
                                 GlassAccent.Red -> GlassAccentRed
                                 GlassAccent.Mono -> GlassAccentMono
+                                GlassAccent.Theme -> MaterialTheme.colorScheme.primary
                             }
                             Surface(
                                 shape = AppShape.chip,
@@ -175,12 +180,14 @@ fun ThemeSetting(
                                     if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                                 ),
                                 modifier = Modifier
+                                    .weight(1f)
                                     .clip(AppShape.chip)
                                     .clickable { onSelectGlassAccent(accent) }
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s)
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.padding(horizontal = Spacing.s, vertical = Spacing.s)
                                 ) {
                                     Box(
                                         modifier = Modifier
@@ -188,11 +195,12 @@ fun ThemeSetting(
                                             .clip(CircleShape)
                                             .background(accentDotColor)
                                     )
-                                    Spacer(modifier = Modifier.width(Spacing.s))
+                                    Spacer(modifier = Modifier.width(Spacing.xs))
                                     Text(
                                         text = if (isGlassTheme) accentName.uppercase() else accentName,
                                         style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.labelLarge,
-                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1
                                     )
                                 }
                             }
@@ -208,6 +216,9 @@ fun ThemeSetting(
                         .fillMaxWidth()
                         .padding(horizontal = Spacing.l, vertical = Spacing.m)
                 ) {
+                    var sliderFrost by remember(uiState.glassFrost) {
+                        mutableFloatStateOf(uiState.glassFrost.toFloat())
+                    }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -220,14 +231,15 @@ fun ThemeSetting(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "${uiState.glassFrost} dp",
+                            text = "${sliderFrost.toInt()} dp",
                             style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
                     Slider(
-                        value = uiState.glassFrost.toFloat(),
-                        onValueChange = { onSetGlassFrost(it.toInt()) },
+                        value = sliderFrost,
+                        onValueChange = { sliderFrost = it },
+                        onValueChangeFinished = { onSetGlassFrost(sliderFrost.toInt()) },
                         valueRange = 0f..32f,
                         steps = 31
                     )
@@ -253,11 +265,12 @@ fun ThemeSetting(
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s)
             ) {
                 items(ThemeTypeColor.entries()) { item ->
+                    val isSelected = item == uiState.colorScheme
                     SelectablePaletteItem(
                         modifier = Modifier.size(64.dp),
                         themeTypeColor = item,
-                        onClick = onSelectThemeColor,
-                        isSelected = item == uiState.colorScheme,
+                        onClick = { onSelectThemeColor(item) },
+                        isSelected = isSelected,
                     )
                 }
             }

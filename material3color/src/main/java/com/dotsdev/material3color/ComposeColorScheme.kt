@@ -24,13 +24,17 @@ fun rememberColorScheme(
                 val dynamicDark = dynamicDarkColorScheme(context)
                 if (isEnabledBlackDark) {
                     dynamicDark.copy(
+                        background = Color.Black,
                         onBackground = Color.White,
                         surface = Color.Black,
                         onSurface = Color.White,
                         surfaceDim = Color.Black,
-                        surfaceContainer = Color.Black,
-                        surfaceContainerLow = Color.Black,
-                        surfaceContainerLowest = Color.Black
+                        surfaceContainerLowest = Color.Black,
+                        surfaceContainerLow = Color(0xFF0A0A0A),
+                        surfaceContainer = Color(0xFF0F0F0F),
+                        surfaceContainerHigh = Color(0xFF161616),
+                        surfaceContainerHighest = Color(0xFF1E1E1E),
+                        outlineVariant = Color(0x33FFFFFF)
                     )
                 } else {
                     dynamicDark

@@ -92,7 +92,10 @@ fun ThemeSettingItem(
             shape = AppShape.inner,
             modifier = modifier.height(92.dp).fillMaxWidth(),
             color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
-            border = if (selected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+            border = BorderStroke(
+                1.dp,
+                if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
         ) {
             itemContent()
         }

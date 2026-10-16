@@ -8,6 +8,7 @@ import io.github.ifa.glancewidget.model.GlassAccent
 
 val LocalIsGlassTheme = compositionLocalOf { false }
 val LocalGlassFrost = compositionLocalOf { 18 }
+val LocalIsPureBlack = compositionLocalOf { false }
 
 val GlassBlack = Color(0xFF000000)
 val GlassSurface = Color(0xFF000000)
@@ -32,23 +33,95 @@ val GlassBlobBlue = Color(0x1F2196F3)
 val GlassBlobTeal = Color(0x1F009688)
 val GlassShadow = Color(0x40000000)
 
-fun glassColorScheme(accent: GlassAccent): ColorScheme {
-    val accentColor = when (accent) {
-        GlassAccent.Red -> GlassAccentRed
-        GlassAccent.Mono -> GlassAccentMono
+fun glassColorScheme(
+    accent: GlassAccent = GlassAccent.Red,
+    baseScheme: ColorScheme? = null,
+    isPureBlack: Boolean = false
+): ColorScheme {
+    val isThemeAccent = accent == GlassAccent.Theme && baseScheme != null
+
+    val accentColor = if (isThemeAccent) {
+        baseScheme!!.primary
+    } else {
+        when (accent) {
+            GlassAccent.Red -> GlassAccentRed
+            GlassAccent.Mono -> GlassAccentMono
+            GlassAccent.Theme -> baseScheme?.primary ?: GlassAccentRed
+        }
     }
-    val onAccentColor = when (accent) {
-        GlassAccent.Red -> Color(0xFFFFFFFF)
-        GlassAccent.Mono -> Color(0xFF000000)
+    val onAccentColor = if (isThemeAccent) {
+        baseScheme!!.onPrimary
+    } else {
+        when (accent) {
+            GlassAccent.Red -> Color(0xFFFFFFFF)
+            GlassAccent.Mono -> Color(0xFF000000)
+            GlassAccent.Theme -> baseScheme?.onPrimary ?: Color(0xFFFFFFFF)
+        }
     }
-    val accentContainer = when (accent) {
-        GlassAccent.Red -> Color(0xFF3B0508)
-        GlassAccent.Mono -> Color(0xFF262626)
+    val accentContainer = if (isThemeAccent) {
+        baseScheme!!.primaryContainer
+    } else {
+        when (accent) {
+            GlassAccent.Red -> Color(0xFF3B0508)
+            GlassAccent.Mono -> Color(0xFF262626)
+            GlassAccent.Theme -> baseScheme?.primaryContainer ?: Color(0xFF3B0508)
+        }
     }
-    val onAccentContainer = when (accent) {
-        GlassAccent.Red -> Color(0xFFFFDAD8)
-        GlassAccent.Mono -> Color(0xFFFFFFFF)
+    val onAccentContainer = if (isThemeAccent) {
+        baseScheme!!.onPrimaryContainer
+    } else {
+        when (accent) {
+            GlassAccent.Red -> Color(0xFFFFDAD8)
+            GlassAccent.Mono -> Color(0xFFFFFFFF)
+            GlassAccent.Theme -> baseScheme?.onPrimaryContainer ?: Color(0xFFFFDAD8)
+        }
     }
+    val tertiaryColor = if (isThemeAccent) {
+        baseScheme!!.tertiary
+    } else {
+        accentColor
+    }
+    val onTertiaryColor = if (isThemeAccent) {
+        baseScheme!!.onTertiary
+    } else {
+        onAccentColor
+    }
+    val tertiaryContainerColor = if (isThemeAccent) {
+        baseScheme!!.tertiaryContainer
+    } else {
+        accentContainer
+    }
+    val onTertiaryContainerColor = if (isThemeAccent) {
+        baseScheme!!.onTertiaryContainer
+    } else {
+        onAccentContainer
+    }
+    val errorColor = if (isThemeAccent) {
+        baseScheme!!.error
+    } else {
+        GlassAccentRed
+    }
+    val onErrorColor = if (isThemeAccent) {
+        baseScheme!!.onError
+    } else {
+        Color(0xFFFFFFFF)
+    }
+    val errorContainerColor = if (isThemeAccent) {
+        baseScheme!!.errorContainer
+    } else {
+        Color(0xFF3B0508)
+    }
+    val onErrorContainerColor = if (isThemeAccent) {
+        baseScheme!!.onErrorContainer
+    } else {
+        Color(0xFFFFDAD8)
+    }
+
+    val surfaceContainerLowestColor = GlassBlack
+    val surfaceContainerLowColor = if (isPureBlack) GlassBlack else GlassSurfaceContainerLow
+    val surfaceContainerColor = if (isPureBlack) Color(0xFF0A0A0A) else GlassSurfaceContainer
+    val surfaceContainerHighColor = if (isPureBlack) Color(0xFF101010) else GlassSurfaceContainerHigh
+    val surfaceContainerHighestColor = if (isPureBlack) Color(0xFF161616) else GlassSurfaceContainerHighest
 
     return darkColorScheme(
         primary = accentColor,
@@ -57,28 +130,75 @@ fun glassColorScheme(accent: GlassAccent): ColorScheme {
         onPrimaryContainer = onAccentContainer,
         secondary = GlassTextSecondary,
         onSecondary = GlassBlack,
-        secondaryContainer = GlassSurfaceContainerHigh,
+        secondaryContainer = surfaceContainerHighColor,
         onSecondaryContainer = GlassTextPrimary,
-        tertiary = accentColor,
-        onTertiary = onAccentColor,
-        tertiaryContainer = accentContainer,
-        onTertiaryContainer = onAccentContainer,
+        tertiary = tertiaryColor,
+        onTertiary = onTertiaryColor,
+        tertiaryContainer = tertiaryContainerColor,
+        onTertiaryContainer = onTertiaryContainerColor,
         background = GlassBlack,
         onBackground = GlassTextPrimary,
         surface = GlassSurface,
         onSurface = GlassTextPrimary,
-        surfaceVariant = GlassSurfaceContainerHigh,
+        surfaceVariant = surfaceContainerHighColor,
         onSurfaceVariant = GlassTextSecondary,
-        surfaceContainerLowest = GlassBlack,
-        surfaceContainerLow = GlassSurfaceContainerLow,
-        surfaceContainer = GlassSurfaceContainer,
-        surfaceContainerHigh = GlassSurfaceContainerHigh,
-        surfaceContainerHighest = GlassSurfaceContainerHighest,
+        surfaceContainerLowest = surfaceContainerLowestColor,
+        surfaceContainerLow = surfaceContainerLowColor,
+        surfaceContainer = surfaceContainerColor,
+        surfaceContainerHigh = surfaceContainerHighColor,
+        surfaceContainerHighest = surfaceContainerHighestColor,
         outline = GlassBorder,
-        outlineVariant = Color(0x1AFFFFFF),
-        error = GlassAccentRed,
-        onError = Color(0xFFFFFFFF),
-        errorContainer = Color(0xFF3B0508),
-        onErrorContainer = Color(0xFFFFDAD8)
+        outlineVariant = if (isPureBlack) Color(0x33FFFFFF) else Color(0x1AFFFFFF),
+        error = errorColor,
+        onError = onErrorColor,
+        errorContainer = errorContainerColor,
+        onErrorContainer = onErrorContainerColor
     )
 }
+
+fun lerpColor(start: Color, stop: Color, fraction: Float): Color {
+    val f = fraction.coerceIn(0f, 1f)
+    return Color(
+        red = start.red + (stop.red - start.red) * f,
+        green = start.green + (stop.green - start.green) * f,
+        blue = start.blue + (stop.blue - start.blue) * f,
+        alpha = start.alpha + (stop.alpha - start.alpha) * f
+    )
+}
+
+fun glassFrostColor(primary: Color, isPureBlack: Boolean = false): Color {
+    val factor = if (isPureBlack) 0.08f else 0.18f
+    val alpha = if (isPureBlack) 0.72f else 0.58f
+    return Color(
+        red = primary.red * factor,
+        green = primary.green * factor,
+        blue = primary.blue * factor,
+        alpha = alpha
+    )
+}
+
+fun glassTintStart(primary: Color): Color {
+    return lerpColor(GlassTintStart, primary.copy(alpha = 0.28f), 0.50f)
+}
+
+fun glassTintEnd(primary: Color): Color {
+    return lerpColor(GlassTintEnd, primary.copy(alpha = 0.08f), 0.40f)
+}
+
+fun glassHighlight(primary: Color): Color {
+    return lerpColor(GlassHighlight, primary.copy(alpha = 0.35f), 0.50f)
+}
+
+fun glassBorder(primary: Color): Color {
+    return lerpColor(GlassBorder, primary.copy(alpha = 0.36f), 0.45f)
+}
+
+fun glassSpecular(primary: Color): Color {
+    return lerpColor(GlassSpecular, primary.copy(alpha = 0.55f), 0.35f)
+}
+
+fun glassFallbackBackground(primary: Color, isPureBlack: Boolean = false): Color {
+    val base = if (isPureBlack) GlassBlack else GlassSurfaceContainerHigh
+    return lerpColor(base, primary.copy(alpha = 0.18f), 0.20f)
+}
+

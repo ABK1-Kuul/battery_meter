@@ -32,6 +32,7 @@ import kotlin.text.get
 
 import io.github.ifa.glancewidget.ui.glass.LocalGlassFrost
 import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.glass.LocalIsPureBlack
 import io.github.ifa.glancewidget.ui.glass.glassColorScheme
 
 data class AppColorScheme(
@@ -50,9 +51,9 @@ fun AppTheme(
 ) {
     val settings by appSettingsRepository.get().collectAsStateWithLifecycle(AppSettings())
     val isDarkTheme = when {
+        settings.theme == ThemeType.LIGHT_THEME -> false
         settings.isGlassThemeEnabled -> true
         settings.theme == ThemeType.DARK_THEME -> true
-        settings.theme == ThemeType.LIGHT_THEME -> false
         else -> isSystemInDarkTheme()
     }
     val view = LocalView.current
@@ -63,18 +64,40 @@ fun AppTheme(
         }
     }
 
+    val isPureBlack = settings.isBlackDarkEnabled && isDarkTheme
     val dynamicOrPresetScheme = rememberColorScheme(
         isDarkTheme = isDarkTheme,
-        isEnabledBlackDark = settings.isBlackDarkEnabled,
+        isEnabledBlackDark = isPureBlack,
         isDynamicColor = settings.themeColor == ThemeTypeColor.System,
         seedColor = settings.themeColor.code,
     )
-    val colorScheme = if (settings.isGlassThemeEnabled) {
-        glassColorScheme(settings.glassAccent)
-    } else {
-        dynamicOrPresetScheme
+    val isGlassActive = settings.isGlassThemeEnabled && isDarkTheme
+    val colorScheme = remember(isGlassActive, settings.glassAccent, dynamicOrPresetScheme, isPureBlack) {
+        if (isGlassActive) {
+            glassColorScheme(
+                accent = settings.glassAccent,
+                baseScheme = dynamicOrPresetScheme,
+                isPureBlack = isPureBlack
+            )
+        } else {
+            if (isPureBlack) {
+                dynamicOrPresetScheme.copy(
+                    background = Color.Black,
+                    surface = Color.Black,
+                    surfaceDim = Color.Black,
+                    surfaceContainerLowest = Color.Black,
+                    surfaceContainerLow = Color(0xFF0A0A0A),
+                    surfaceContainer = Color(0xFF0F0F0F),
+                    surfaceContainerHigh = Color(0xFF161616),
+                    surfaceContainerHighest = Color(0xFF1E1E1E),
+                    outlineVariant = Color(0x33FFFFFF)
+                )
+            } else {
+                dynamicOrPresetScheme
+            }
+        }
     }
-    val effectiveTypography = if (settings.isGlassThemeEnabled && typography == Type.typography) {
+    val effectiveTypography = if (isGlassActive && typography == Type.typography) {
         Type.glassTypography
     } else {
         typography
@@ -82,8 +105,9 @@ fun AppTheme(
     val appColorScheme = rememberAppColorScheme(isDarkTheme, colorScheme)
     CompositionLocalProvider(
         LocalAppColorSchemes provides appColorScheme,
-        LocalIsGlassTheme provides settings.isGlassThemeEnabled,
-        LocalGlassFrost provides settings.glassFrost
+        LocalIsGlassTheme provides isGlassActive,
+        LocalGlassFrost provides settings.glassFrost,
+        LocalIsPureBlack provides isPureBlack
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -97,7 +121,7 @@ fun AppTheme(
 @Composable
 fun rememberAppColorScheme(isDarkTheme: Boolean, colorScheme: ColorScheme): List<AppColorScheme> {
     val appColorSchemeMap = rememberAppColorSchemeMap(isDarkTheme)
-    return remember(colorScheme) {
+    return remember(colorScheme, appColorSchemeMap) {
         ThemeTypeColor.entries.map {
             if (it == ThemeTypeColor.System) {
                 AppColorScheme(it, colorScheme)

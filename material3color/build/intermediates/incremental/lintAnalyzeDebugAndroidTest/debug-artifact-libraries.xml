@@ -1,9 +1,9 @@
 <libraries>
   <library
       name=":@@:material3color::debug"
-      jars="C:\Users\admin\.gradle\caches\8.13\transforms\7a5c5062a73cfe15315c7c2c2ccd2d68\transformed\out\jars\classes.jar;C:\Users\admin\.gradle\caches\8.13\transforms\7a5c5062a73cfe15315c7c2c2ccd2d68\transformed\out\jars\libs\R.jar"
+      jars="C:\Users\admin\.gradle\caches\8.13\transforms\a96c20f1730e4121e24799f53ec150de\transformed\out\jars\classes.jar;C:\Users\admin\.gradle\caches\8.13\transforms\a96c20f1730e4121e24799f53ec150de\transformed\out\jars\libs\R.jar"
       resolved="GlanceWidget:material3color:unspecified"
-      folder="C:\Users\admin\.gradle\caches\8.13\transforms\7a5c5062a73cfe15315c7c2c2ccd2d68\transformed\out"
+      folder="C:\Users\admin\.gradle\caches\8.13\transforms\a96c20f1730e4121e24799f53ec150de\transformed\out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

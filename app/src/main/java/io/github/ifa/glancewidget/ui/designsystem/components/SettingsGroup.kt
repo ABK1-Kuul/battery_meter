@@ -1,5 +1,6 @@
 package io.github.ifa.glancewidget.ui.designsystem.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -65,7 +66,8 @@ fun SettingsGroup(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = AppShape.card,
-                color = MaterialTheme.colorScheme.surfaceContainerLow
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),

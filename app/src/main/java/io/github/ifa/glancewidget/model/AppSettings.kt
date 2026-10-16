@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class GlassAccent {
     Red,
-    Mono
+    Mono,
+    Theme
 }
 
 @Serializable

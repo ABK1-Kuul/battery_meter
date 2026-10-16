@@ -49,7 +49,7 @@ object GlassBlurTracker {
     fun tryAcquire(): Boolean {
         while (true) {
             val current = activeCount.get()
-            if (current >= 4) return false
+            if (current >= 32) return false
             if (activeCount.compareAndSet(current, current + 1)) return true
         }
     }
@@ -121,17 +121,20 @@ fun GlassSurface(
 
     val baseModifier = modifier.clip(shape)
 
+    val themePrimary = MaterialTheme.colorScheme.primary
+    val isPureBlack = LocalIsPureBlack.current
+
     val backdropModifier = if (useBlur) {
         baseModifier.hazeEffect(
             state = hazeState,
             style = HazeDefaults.style(
-                backgroundColor = GlassBlack.copy(alpha = 0.50f),
+                backgroundColor = glassFrostColor(themePrimary, isPureBlack),
                 blurRadius = frostDp,
                 noiseFactor = 0.16f
             )
         )
     } else {
-        baseModifier.background(GlassSurfaceContainerHigh)
+        baseModifier.background(glassFallbackBackground(themePrimary, isPureBlack))
     }
 
     val noiseImage = remember { GlassNoiseCache.bitmap.asImageBitmap() }
@@ -140,12 +143,12 @@ fun GlassSurface(
         modifier = backdropModifier.drawWithCache {
             val outline = shape.createOutline(size, layoutDirection, this)
             val tintBrush = Brush.linearGradient(
-                colors = listOf(GlassTintStart, GlassTintEnd),
+                colors = listOf(glassTintStart(themePrimary), glassTintEnd(themePrimary)),
                 start = Offset.Zero,
                 end = Offset(size.width, size.height)
             )
             val radialHighlight = Brush.radialGradient(
-                colors = listOf(GlassHighlight, Color.Transparent),
+                colors = listOf(glassHighlight(themePrimary), Color.Transparent),
                 center = Offset.Zero,
                 radius = size.minDimension * 0.75f
             )
@@ -156,12 +159,12 @@ fun GlassSurface(
                 drawOutline(outline = outline, brush = radialHighlight)
                 drawOutline(
                     outline = outline,
-                    color = GlassBorder,
+                    color = glassBorder(themePrimary),
                     style = Stroke(width = stroke1dp)
                 )
 
                 drawLine(
-                    color = GlassSpecular,
+                    color = glassSpecular(themePrimary),
                     start = Offset(0f, 0f),
                     end = Offset(size.width, 0f),
                     strokeWidth = stroke1dp

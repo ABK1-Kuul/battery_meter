@@ -33,9 +33,10 @@ fun GlassBackdrop(
         return
     }
 
-    val primaryAccent = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-    val blueBlob = GlassBlobBlue
-    val tealBlob = GlassBlobTeal
+    val isPureBlack = LocalIsPureBlack.current
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val containerColor = MaterialTheme.colorScheme.primaryContainer
 
     val hazeModifier = if (hazeState != null) {
         modifier.hazeSource(state = hazeState)
@@ -48,30 +49,32 @@ fun GlassBackdrop(
             .fillMaxSize()
             .background(GlassBlack)
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
+        if (!isPureBlack) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val width = size.width
+                val height = size.height
 
-            val accentBrush = Brush.radialGradient(
-                colors = listOf(primaryAccent, Color.Transparent),
-                center = Offset(width * 0.20f, height * 0.15f),
-                radius = width * 0.55f
-            )
-            drawRect(brush = accentBrush)
+                val primaryBrush = Brush.radialGradient(
+                    colors = listOf(primaryColor.copy(alpha = 0.20f), Color.Transparent),
+                    center = Offset(width * 0.20f, height * 0.15f),
+                    radius = width * 0.60f
+                )
+                drawRect(brush = primaryBrush)
 
-            val blueBrush = Brush.radialGradient(
-                colors = listOf(blueBlob, Color.Transparent),
-                center = Offset(width * 0.85f, height * 0.45f),
-                radius = width * 0.60f
-            )
-            drawRect(brush = blueBrush)
+                val tertiaryBrush = Brush.radialGradient(
+                    colors = listOf(tertiaryColor.copy(alpha = 0.16f), Color.Transparent),
+                    center = Offset(width * 0.85f, height * 0.45f),
+                    radius = width * 0.60f
+                )
+                drawRect(brush = tertiaryBrush)
 
-            val tealBrush = Brush.radialGradient(
-                colors = listOf(tealBlob, Color.Transparent),
-                center = Offset(width * 0.25f, height * 0.80f),
-                radius = width * 0.50f
-            )
-            drawRect(brush = tealBrush)
+                val containerBrush = Brush.radialGradient(
+                    colors = listOf(containerColor.copy(alpha = 0.18f), Color.Transparent),
+                    center = Offset(width * 0.25f, height * 0.80f),
+                    radius = width * 0.55f
+                )
+                drawRect(brush = containerBrush)
+            }
         }
 
         content()
