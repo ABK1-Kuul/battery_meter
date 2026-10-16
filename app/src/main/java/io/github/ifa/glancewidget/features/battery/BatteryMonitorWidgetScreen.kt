@@ -52,7 +52,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
@@ -83,16 +82,21 @@ import io.github.ifa.glancewidget.ui.designsystem.components.SettingsRow
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.glass.GlassSurface
+import io.github.ifa.glancewidget.ui.glass.GlassTextPrimary
+import io.github.ifa.glancewidget.ui.glass.GlassTextSecondary
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
 import io.github.ifa.glancewidget.ui.gravity.gravityItem
 import io.github.ifa.glancewidget.ui.gravity.pillAvoidance
 import io.github.ifa.glancewidget.ui.model.asString
 import io.github.ifa.glancewidget.ui.model.toUiModel
+import io.github.ifa.glancewidget.ui.theme.glassLabel
 import io.github.ifa.glancewidget.utils.addWidget
+import io.github.ifa.glancewidget.utils.combinePadding
 import io.github.ifa.glancewidget.utils.findActivity
 import io.github.ifa.glancewidget.utils.requestToPinWidget
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 const val batteryMonitorScreenRoute = "battery_monitor_screen_route"
 
@@ -188,6 +192,7 @@ private fun BatteryMonitorScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val haptic = LocalHapticFeedback.current
     val locale = LocalConfiguration.current.locales[0]
+    val isGlassTheme = LocalIsGlassTheme.current
     var dropdownExpanded by remember { mutableStateOf(false) }
 
     AppScaffold(
@@ -217,8 +222,9 @@ private fun BatteryMonitorScreen(
             )
         }
     ) { scaffoldPadding ->
+        val insets = combinePadding(scaffoldPadding, contentPadding)
         LazyColumn(
-            contentPadding = scaffoldPadding,
+            contentPadding = insets,
             verticalArrangement = Arrangement.spacedBy(Spacing.l),
             modifier = Modifier.fillMaxSize()
         ) {
@@ -256,7 +262,26 @@ private fun BatteryMonitorScreen(
                 val extraInfo = uiState.batteryOverall.extraBatteryInfo
                 val powerWatts = extraInfo.powerInWatt(myDevice.voltage)
                 val powerPercentage = powerWatts.toFloat() / extraInfo.maxWattsChargeInput
-                val powerText = String.format(locale, "%.1f", powerWatts)
+
+                val currentMa = extraInfo.chargeCurrent
+                val hasValidCurrent = currentMa != 0 && currentMa != Int.MIN_VALUE
+                val currentText = if (hasValidCurrent) {
+                    val sign = if (currentMa > 0) "+" else ""
+                    "$sign$currentMa"
+                } else {
+                    "--"
+                }
+
+                val powerText = if (hasValidCurrent && powerWatts > 0.05) {
+                    String.format(locale, "%.1f", powerWatts)
+                } else if (!hasValidCurrent) {
+                    "--"
+                } else {
+                    "0.0"
+                }
+
+                val currentIcon = if (myDevice.isCharging) Icons.Rounded.ElectricBolt else Icons.Rounded.Waves
+                val currentAccent = if (myDevice.isCharging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
 
                 Row(
                     modifier = Modifier
@@ -283,11 +308,19 @@ private fun BatteryMonitorScreen(
                     )
                     MetricTile(
                         label = stringResource(id = R.string.current),
-                        value = "${extraInfo.chargeCurrent}",
+                        value = currentText,
                         unit = "mA",
-                        icon = Icons.Rounded.Waves,
+                        icon = currentIcon,
                         modifier = Modifier.weight(1f),
-                        accent = MaterialTheme.colorScheme.tertiary
+                        accent = currentAccent,
+                        onClick = {
+                            onOpenWattsDetailScreen(
+                                WattsDetailDestination(
+                                    power = powerWatts.toFloat(),
+                                    powerPercentage = powerPercentage
+                                )
+                            )
+                        }
                     )
                 }
             }
@@ -360,14 +393,11 @@ private fun BatteryMonitorScreen(
                     SectionHeader(text = stringResource(id = R.string.connected_devices))
                 }
                 items(connectedDevices, key = { it.address }) { device ->
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .pillAvoidance()
-                            .gravityItem("device_${device.address}"),
-                        shape = AppShape.card,
-                        color = MaterialTheme.colorScheme.surfaceContainerLow
-                    ) {
+                    val deviceModifier = Modifier
+                        .fillMaxWidth()
+                        .pillAvoidance()
+                        .gravityItem("device_${device.address}")
+                    val deviceContent: @Composable () -> Unit = {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -377,24 +407,41 @@ private fun BatteryMonitorScreen(
                             Image(
                                 painter = painterResource(id = device.deviceType.icon),
                                 contentDescription = null,
-                                modifier = Modifier.size(28.dp),
+                                modifier = Modifier.size(Spacing.xl),
                                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                             )
                             Spacer(modifier = Modifier.width(Spacing.m))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = device.name,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.bodyLarge,
+                                    color = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = "${device.batteryInPercentage}%",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = if (isGlassTheme) GlassTextSecondary else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+                        }
+                    }
+
+                    if (isGlassTheme) {
+                        GlassSurface(
+                            modifier = deviceModifier,
+                            shape = AppShape.card
+                        ) {
+                            deviceContent()
+                        }
+                    } else {
+                        Surface(
+                            modifier = deviceModifier,
+                            shape = AppShape.card,
+                            color = MaterialTheme.colorScheme.surfaceContainerLow
+                        ) {
+                            deviceContent()
                         }
                     }
                 }
@@ -402,11 +449,11 @@ private fun BatteryMonitorScreen(
 
             item {
                 var isAodChecked by remember { mutableStateOf(false) }
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = AppShape.card,
-                    color = MaterialTheme.colorScheme.surfaceContainerLow
-                ) {
+                val aodModifier = Modifier
+                    .fillMaxWidth()
+                    .pillAvoidance()
+                    .gravityItem("aod_setting")
+                val aodContent: @Composable () -> Unit = {
                     SettingsRow(
                         title = stringResource(id = R.string.always_on_display),
                         subtitle = stringResource(id = R.string.always_on_display_desc),
@@ -425,6 +472,23 @@ private fun BatteryMonitorScreen(
                             )
                         }
                     )
+                }
+
+                if (isGlassTheme) {
+                    GlassSurface(
+                        modifier = aodModifier,
+                        shape = AppShape.card
+                    ) {
+                        aodContent()
+                    }
+                } else {
+                    Surface(
+                        modifier = aodModifier,
+                        shape = AppShape.card,
+                        color = MaterialTheme.colorScheme.surfaceContainerLow
+                    ) {
+                        aodContent()
+                    }
                 }
             }
         }
@@ -475,7 +539,7 @@ fun BatteryMonitorScreenPreview() {
         )
         BatteryMonitorScreen(
             uiState = sampleUiState,
-            contentPadding = PaddingValues(0.dp),
+            contentPadding = PaddingValues(),
             isShowAddWidgetBottomSheet = false,
             onOpenWattsDetailScreen = {},
             onOpenChartDetailScreen = {},

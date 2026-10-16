@@ -1,6 +1,7 @@
 package io.github.ifa.glancewidget.ui.designsystem.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,6 +68,11 @@ fun HeroBattery(
         animationSpec = AppMotion.spatial(),
         label = "heroProgress"
     )
+    val animatedLevel by animateIntAsState(
+        targetValue = model.level,
+        animationSpec = AppMotion.spatial(),
+        label = "heroLevel"
+    )
 
     val heroDescription = "${model.level}% ${model.statusLine.asString()}"
 
@@ -87,17 +93,14 @@ fun HeroBattery(
             ) {
                 Spacer(modifier = Modifier.height(Spacing.m))
                 DotMatrixText(
-                    text = "${model.level}%",
-                    dotSize = 4.dp,
-                    dotSpacing = 1.5.dp,
-                    charSpacing = 4.dp,
+                    text = "$animatedLevel%",
                     tint = GlassTextPrimary
                 )
                 Spacer(modifier = Modifier.height(Spacing.l))
                 val totalDots = 22
                 val litDots = (animatedProgress * totalDots).toInt().coerceIn(0, totalDots)
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     for (i in 0 until totalDots) {
@@ -110,7 +113,7 @@ fun HeroBattery(
                         }
                         Box(
                             modifier = Modifier
-                                .size(6.dp)
+                                .size(Spacing.s)
                                 .clip(CircleShape)
                                 .background(dotColor)
                         )
@@ -165,14 +168,14 @@ fun HeroBattery(
                             width = 16f,
                             cap = StrokeCap.Round
                         ),
-                        wavelength = 32.dp,
+                        wavelength = Spacing.xxl,
                         amplitude = if (model.isCharging) { _ -> 1f } else { _ -> 0f }
                     )
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Row(verticalAlignment = Alignment.Bottom) {
                             AnimatedCounter(
-                                count = model.level,
+                                count = animatedLevel,
                                 style = MaterialTheme.typography.metricLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = toneColors.onContainer

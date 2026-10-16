@@ -21,9 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.glass.GlassBorder
+import io.github.ifa.glancewidget.ui.glass.GlassSurface
+import io.github.ifa.glancewidget.ui.glass.GlassTextPrimary
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.theme.glassLabel
 
 @Composable
 fun InfoBanner(
@@ -34,11 +38,8 @@ fun InfoBanner(
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = AppShape.card,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh
-    ) {
+    val isGlassTheme = LocalIsGlassTheme.current
+    val content: @Composable () -> Unit = {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -51,14 +52,14 @@ fun InfoBanner(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(Spacing.xl),
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.width(Spacing.m))
                 Text(
                     text = text,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.bodyMedium,
+                    color = if (isGlassTheme) GlassTextPrimary else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -67,7 +68,9 @@ fun InfoBanner(
                 Spacer(modifier = Modifier.height(Spacing.m))
                 LinearProgressIndicator(
                     progress = { progress / 100f },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = if (isGlassTheme) GlassBorder else MaterialTheme.colorScheme.surfaceContainerHighest
                 )
             }
 
@@ -82,12 +85,29 @@ fun InfoBanner(
                         )
                     ) {
                         Text(
-                            text = actionLabel,
-                            style = MaterialTheme.typography.labelLarge
+                            text = if (isGlassTheme) actionLabel.uppercase() else actionLabel,
+                            style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.labelLarge
                         )
                     }
                 }
             }
+        }
+    }
+
+    if (isGlassTheme) {
+        GlassSurface(
+            modifier = modifier.fillMaxWidth(),
+            shape = AppShape.card
+        ) {
+            content()
+        }
+    } else {
+        Surface(
+            modifier = modifier.fillMaxWidth(),
+            shape = AppShape.card,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh
+        ) {
+            content()
         }
     }
 }
