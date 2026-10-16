@@ -18,27 +18,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Mail
-import androidx.compose.material.icons.rounded.QuestionMark
 import androidx.compose.material.icons.rounded.Support
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -54,14 +49,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.ifa.glancewidget.R
-import io.github.ifa.glancewidget.ui.component.AnimatedTextTopAppBar
-import io.github.ifa.glancewidget.ui.component.TextWithRightArrow
-import io.github.ifa.glancewidget.ui.theme.topBarColors
+import io.github.ifa.glancewidget.ui.designsystem.components.AppScaffold
+import io.github.ifa.glancewidget.ui.designsystem.components.SettingsGroup
+import io.github.ifa.glancewidget.ui.designsystem.components.SettingsRow
+import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
+import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.glass.GlassSurface
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.gravity.gravityItem
+import io.github.ifa.glancewidget.ui.gravity.pillAvoidance
 import io.github.ifa.glancewidget.utils.Constants.IFA_GITHUB_URL
 import io.github.ifa.glancewidget.utils.Constants.IFA_LICENSES_URL
 import io.github.ifa.glancewidget.utils.Constants.IFA_SUPPORT_URL
@@ -69,11 +70,9 @@ import io.github.ifa.glancewidget.utils.Constants.IFA_TEAM_URL
 import io.github.ifa.glancewidget.utils.Constants.STORE_APP_URL
 import io.github.ifa.glancewidget.utils.combinePadding
 import io.github.ifa.glancewidget.utils.cookieShape
-import io.github.ifa.glancewidget.utils.listItemColor
 import io.github.ifa.glancewidget.utils.navigateLicencesScreen
 import io.github.ifa.glancewidget.utils.navigateUrl
 import io.github.ifa.glancewidget.utils.sendMail
-import io.github.ifa.glancewidget.utils.singleItemListItemShapes
 
 @Composable
 fun AboutScreen(
@@ -95,7 +94,7 @@ fun AboutScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AboutScreen(
     uiState: AboutViewModel.AboutScreenUiState,
@@ -107,6 +106,8 @@ internal fun AboutScreen(
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val context = LocalContext.current
+    val isGlassTheme = LocalIsGlassTheme.current
+
     val onOpenLicensesScreen = {
         context.navigateLicencesScreen()
     }
@@ -116,64 +117,58 @@ internal fun AboutScreen(
     val onOpenGooglePlay = {
         context.navigateUrl(STORE_APP_URL)
     }
-    Scaffold(
+
+    AppScaffold(
+        title = stringResource(id = R.string.about_tab),
+        scrollBehavior = scrollBehavior,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            AnimatedTextTopAppBar(
-                title = stringResource(id = R.string.about_tab),
-                navigationIcon = {
-                    if (showNavigationIcon) IconButton(
-                        onClick = { onNavigationIconClick() },
-                        colors = IconButtonDefaults.iconButtonColors().copy(
-                            containerColor = MaterialTheme.colorScheme.background
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.ArrowBackIosNew,
-                            contentDescription = "Back",
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        containerColor = topBarColors.containerColor,
+        navigationIcon = {
+            if (showNavigationIcon) {
+                IconButton(
+                    onClick = onNavigationIconClick,
+                    colors = IconButtonDefaults.iconButtonColors().copy(
+                        containerColor = if (isGlassTheme) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowBackIosNew,
+                        contentDescription = stringResource(id = R.string.back)
+                    )
+                }
+            }
+        }
     ) { padding ->
         val insets = combinePadding(padding, contentPadding)
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l),
             contentPadding = insets,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 16.dp)
-                .padding(horizontal = 16.dp)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
             item {
-                Column(
+                GlassSurface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.largeIncreased),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                        .padding(horizontal = Spacing.l)
+                        .pillAvoidance()
+                        .gravityItem("about_app_hero"),
+                    shape = AppShape.hero
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.background)
-                            .padding(16.dp),
+                            .padding(Spacing.l),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.l)
                     ) {
-                        Box(modifier = Modifier.size(64.dp)) {
+                        Box(modifier = Modifier.size(56.dp)) {
                             val infiniteTransition = rememberInfiniteTransition(label = "rotate")
                             val rotation by infiniteTransition.animateFloat(
                                 initialValue = 0f,
                                 targetValue = 360f,
                                 animationSpec = infiniteRepeatable(
-                                    animation = tween(
-                                        durationMillis = 4000, easing = LinearEasing
-                                    )
+                                    animation = tween(durationMillis = 4000, easing = LinearEasing)
                                 ),
                                 label = "rotation"
                             )
@@ -184,73 +179,78 @@ internal fun AboutScreen(
                                     .clip(cookieShape())
                                     .background(MaterialTheme.colorScheme.secondaryContainer)
                             )
-
                             Icon(
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .size(48.dp),
+                                    .size(40.dp),
                                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                                 tint = MaterialTheme.colorScheme.secondary,
-                                contentDescription = "app icon"
+                                contentDescription = null
                             )
                         }
                         Column {
                             Text(
                                 text = stringResource(id = R.string.app_name),
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                style = MaterialTheme.typography.bodySmall,
-                                text = stringResource(
-                                    id = R.string.version, uiState.appVersion
-                                ),
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.bodyMedium,
+                                text = stringResource(id = R.string.version, uiState.appVersion),
+                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
+                }
+            }
 
+            item {
+                GlassSurface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Spacing.l)
+                        .pillAvoidance()
+                        .gravityItem("about_author"),
+                    shape = AppShape.card
+                ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.background)
-                            .padding(16.dp),
+                            .padding(Spacing.l),
                         verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(Spacing.l)
                     ) {
                         Box(
                             modifier = Modifier
-                                .clip(MaterialTheme.shapes.largeIncreased)
+                                .clip(AppShape.card)
                                 .background(MaterialTheme.colorScheme.secondaryContainer)
-                                .size(64.dp),
+                                .size(56.dp)
                         ) {
                             Icon(
                                 modifier = Modifier
                                     .align(Alignment.Center)
-                                    .size(48.dp),
+                                    .size(40.dp),
                                 painter = painterResource(id = R.drawable.img_dotsdev),
                                 tint = MaterialTheme.colorScheme.secondary,
-                                contentDescription = "app icon"
+                                contentDescription = null
                             )
                         }
 
-                        Column(
-                            horizontalAlignment = Alignment.Start
-                        ) {
+                        Column(horizontalAlignment = Alignment.Start) {
                             Text(
-                                text = "Dotsdev", style = MaterialTheme.typography.titleMedium
+                                text = "Dotsdev",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 style = MaterialTheme.typography.bodySmall,
                                 text = "@huyhunhngc from IFATeam",
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
+                            Spacer(modifier = Modifier.height(Spacing.m))
+                            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
                                 TonalButton(
                                     onClick = { context.sendMail() },
                                     imageVector = Icons.Rounded.Mail,
@@ -259,17 +259,12 @@ internal fun AboutScreen(
                                     onClick = { onExternalUrlClick(context, IFA_SUPPORT_URL) },
                                     imageVector = Icons.Rounded.Support,
                                 )
-
                                 TonalButton(
-                                    onClick = {
-                                        onExternalUrlClick(context, IFA_TEAM_URL)
-                                    },
+                                    onClick = { onExternalUrlClick(context, IFA_TEAM_URL) },
                                     icon = R.drawable.ic_globe,
                                 )
                                 TonalButton(
-                                    onClick = {
-                                        onExternalUrlClick(context, IFA_GITHUB_URL)
-                                    },
+                                    onClick = { onExternalUrlClick(context, IFA_GITHUB_URL) },
                                     icon = R.drawable.ic_github,
                                 )
                             }
@@ -277,52 +272,85 @@ internal fun AboutScreen(
                     }
                 }
             }
+
             item {
-                SegmentedListItem(
-                    leadingContent = {
-                        Icon(painterResource(R.drawable.ic_play_store), contentDescription = null)
-                    },
-                    trailingContent = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    supportingContent = {
-                        Text(text = stringResource(R.string.rate_on_google_play))
-                    },
-                    shapes = ListItemDefaults.segmentedShapes(0, 1, singleItemListItemShapes),
-                    colors = listItemColor,
-                    onClick = onOpenGooglePlay,
-                ) {
-                    Text(stringResource(id = R.string.rate))
-                }
-            }
-            item {
-                Column(
+                SettingsGroup(
+                    title = null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.largeIncreased),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                        .padding(horizontal = Spacing.l)
+                        .pillAvoidance()
+                        .gravityItem("about_rate")
                 ) {
-                    TextWithRightArrow(
-                        text = stringResource(id = R.string.license),
-                        icon = painterResource(id = R.drawable.ic_license),
+                    SettingsRow(
+                        title = stringResource(id = R.string.rate),
+                        subtitle = stringResource(id = R.string.rate_on_google_play),
+                        leadingPainter = painterResource(id = R.drawable.ic_play_store),
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        onClick = onOpenGooglePlay
+                    )
+                }
+            }
+
+            item {
+                SettingsGroup(
+                    title = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Spacing.l)
+                        .pillAvoidance()
+                        .gravityItem("about_legal")
+                ) {
+                    SettingsRow(
+                        title = stringResource(id = R.string.license),
+                        leadingPainter = painterResource(id = R.drawable.ic_license),
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
                         onClick = onOpenLicensesScreen
                     )
-                    TextWithRightArrow(
-                        text = stringResource(id = R.string.font_doto_license),
-                        icon = painterResource(id = R.drawable.ic_license),
-                        rightIcon = Icons.AutoMirrored.Rounded.OpenInNew,
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = Spacing.l),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                    SettingsRow(
+                        title = stringResource(id = R.string.font_doto_license),
+                        leadingPainter = painterResource(id = R.drawable.ic_license),
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
                         onClick = {
                             onExternalUrlClick(context, "https://github.com/googlefonts/doto")
                         }
                     )
-                    TextWithRightArrow(
-                        text = stringResource(id = R.string.privacy_policy),
-                        icon = painterResource(id = R.drawable.ic_policy),
-                        rightIcon = Icons.AutoMirrored.Rounded.OpenInNew,
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = Spacing.l),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                    SettingsRow(
+                        title = stringResource(id = R.string.privacy_policy),
+                        leadingPainter = painterResource(id = R.drawable.ic_policy),
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
                         onClick = onOpenPrivacyPolicy
                     )
                 }
@@ -331,38 +359,49 @@ internal fun AboutScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TonalButton(
     onClick: () -> Unit,
     icon: Int? = null,
     imageVector: ImageVector? = null,
 ) {
-    FilledTonalIconButton(
-        onClick = onClick, modifier = Modifier.width(48.dp)
+    Surface(
+        onClick = onClick,
+        shape = AppShape.chip,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.size(44.dp)
     ) {
-        if (icon != null) {
-            Icon(
-                painter = painterResource(id = icon),
-                modifier = Modifier.size(20.dp),
-                contentDescription = "Website"
-            )
-        } else {
-            Icon(
-                imageVector = imageVector ?: Icons.Rounded.QuestionMark,
-                modifier = Modifier.size(20.dp),
-                contentDescription = "Website"
-            )
+        Box(contentAlignment = Alignment.Center) {
+            if (icon != null) {
+                Icon(
+                    painter = painterResource(id = icon),
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    contentDescription = null
+                )
+            } else if (imageVector != null) {
+                Icon(
+                    imageVector = imageVector,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    contentDescription = null
+                )
+            }
         }
     }
 }
 
-@Preview
+@ThemePreviews
 @Composable
 fun AboutScreenPreview() {
-    AboutScreen(
-        contentPadding = PaddingValues(),
-        onNavigationIconClick = {},
-        onExternalUrlClick = {},
-    )
+    MaterialTheme {
+        AboutScreen(
+            uiState = AboutViewModel.AboutScreenUiState(appVersion = "2.0.0 (200001)"),
+            snackbarHostState = remember { SnackbarHostState() },
+            contentPadding = PaddingValues(),
+            showNavigationIcon = true,
+            onNavigationIconClick = {},
+            onExternalUrlClick = {},
+        )
+    }
 }

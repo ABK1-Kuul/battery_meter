@@ -3,19 +3,17 @@ package io.github.ifa.glancewidget.features.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
@@ -29,10 +27,13 @@ import io.github.ifa.glancewidget.features.battery.component.BonedDeviceItem
 import io.github.ifa.glancewidget.features.settings.component.WidgetSettings
 import io.github.ifa.glancewidget.model.BonedDevice
 import io.github.ifa.glancewidget.model.BonnedDeviceSettings
-import io.github.ifa.glancewidget.ui.component.AnimatedTextTopAppBar
+import io.github.ifa.glancewidget.ui.designsystem.components.AppScaffold
 import io.github.ifa.glancewidget.ui.designsystem.components.SettingsGroup
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.gravity.gravityItem
+import io.github.ifa.glancewidget.ui.gravity.pillAvoidance
 import io.github.ifa.glancewidget.utils.combinePadding
 
 @Composable
@@ -58,7 +59,7 @@ fun WidgetSettingsScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WidgetSettingsScreenLayout(
     uiState: SettingsViewModel.SettingsScreenUiState,
@@ -71,35 +72,33 @@ internal fun WidgetSettingsScreenLayout(
     onNavigationIconClick: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
+    val isGlassTheme = LocalIsGlassTheme.current
+
+    AppScaffold(
+        title = stringResource(id = R.string.widget_tab),
+        scrollBehavior = scrollBehavior,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            AnimatedTextTopAppBar(
-                title = stringResource(id = R.string.widget_tab),
-                navigationIcon = {
-                    if (showNavigationIcon) IconButton(
-                        onClick = { onNavigationIconClick() },
-                        colors = IconButtonDefaults.iconButtonColors().copy(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.ArrowBackIosNew,
-                            contentDescription = stringResource(id = R.string.back),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
+        navigationIcon = {
+            if (showNavigationIcon) {
+                IconButton(
+                    onClick = onNavigationIconClick,
+                    colors = IconButtonDefaults.iconButtonColors().copy(
+                        containerColor = if (isGlassTheme) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowBackIosNew,
+                        contentDescription = stringResource(id = R.string.back),
+                    )
+                }
+            }
+        }
     ) { padding ->
         val insets = combinePadding(padding, contentPadding)
         LazyColumn(
             contentPadding = insets,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = Spacing.l)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             verticalArrangement = Arrangement.spacedBy(Spacing.l),
         ) {
@@ -109,6 +108,11 @@ internal fun WidgetSettingsScreenLayout(
                     syncColorEnabled = uiState.syncColorEnabled,
                     onSetNotificationEnabled = onSetNotificationEnabled,
                     onSetShowPairedDevice = onSetShowPairedDevice,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Spacing.l)
+                        .pillAvoidance()
+                        .gravityItem("widget_settings")
                 )
             }
 
@@ -129,7 +133,12 @@ private fun LazyListScope.connectedDevices(
     if (batteryConnectedDevices.isNotEmpty()) {
         item {
             SettingsGroup(
-                title = stringResource(R.string.bluetooth_device_setting)
+                title = stringResource(R.string.bluetooth_device_setting),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.l)
+                    .pillAvoidance()
+                    .gravityItem("connected_devices")
             ) {
                 batteryConnectedDevices.forEach { device ->
                     val showInWidget = batteryDeviceSettings.settings[device.address]?.showInWidget ?: true

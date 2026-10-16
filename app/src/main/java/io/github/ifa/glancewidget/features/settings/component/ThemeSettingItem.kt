@@ -1,5 +1,8 @@
 package io.github.ifa.glancewidget.features.settings.component
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -23,6 +27,9 @@ import io.github.ifa.glancewidget.model.ThemeType
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.glass.GlassSurface
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.theme.glassLabel
 
 @Composable
 fun ThemeSettingItem(
@@ -31,30 +38,63 @@ fun ThemeSettingItem(
     onSelectTheme: (ThemeType) -> Unit,
     selected: Boolean,
 ) {
-    Surface(
-        onClick = { onSelectTheme(themeType) },
-        shape = AppShape.inner,
-        modifier = modifier.height(90.dp).fillMaxWidth(),
-        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerLow,
-        contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-    ) {
-        Box {
+    val isGlassTheme = LocalIsGlassTheme.current
+
+    val itemContent = @Composable {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(92.dp)
+                .then(
+                    if (isGlassTheme && selected) {
+                        Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                    } else {
+                        Modifier
+                    }
+                )
+        ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.align(Alignment.Center)
             ) {
                 Icon(
-                    themeType.themeIcon(), contentDescription = null
+                    painter = themeType.themeIcon(),
+                    contentDescription = null,
+                    tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(Spacing.xs))
                 Text(
-                    themeType.themeName(),
+                    text = if (isGlassTheme) themeType.themeName().uppercase() else themeType.themeName(),
                     textAlign = TextAlign.Center,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelLarge
+                    style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.labelLarge,
+                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                 )
             }
+        }
+    }
+
+    if (isGlassTheme) {
+        GlassSurface(
+            shape = AppShape.inner,
+            modifier = modifier
+                .height(92.dp)
+                .fillMaxWidth()
+                .clip(AppShape.inner)
+                .clickable { onSelectTheme(themeType) }
+        ) {
+            itemContent()
+        }
+    } else {
+        Surface(
+            onClick = { onSelectTheme(themeType) },
+            shape = AppShape.inner,
+            modifier = modifier.height(92.dp).fillMaxWidth(),
+            color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
+            border = if (selected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+        ) {
+            itemContent()
         }
     }
 }

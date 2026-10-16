@@ -1,18 +1,29 @@
 package io.github.ifa.glancewidget.features.settings.component
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Contrast
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,35 +31,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.features.settings.SettingsViewModel
+import io.github.ifa.glancewidget.model.GlassAccent
 import io.github.ifa.glancewidget.model.ThemeType
 import io.github.ifa.glancewidget.model.ThemeTypeColor
 import io.github.ifa.glancewidget.ui.designsystem.components.SettingsGroup
 import io.github.ifa.glancewidget.ui.designsystem.components.SettingsRow
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
-import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
-
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import io.github.ifa.glancewidget.model.GlassAccent
+import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
 import io.github.ifa.glancewidget.ui.glass.GlassAccentMono
 import io.github.ifa.glancewidget.ui.glass.GlassAccentRed
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.gravity.gravityItem
+import io.github.ifa.glancewidget.ui.gravity.pillAvoidance
+import io.github.ifa.glancewidget.ui.theme.glassLabel
 
 @Composable
 fun ThemeSetting(
@@ -60,6 +63,7 @@ fun ThemeSetting(
     onSelectGlassAccent: (GlassAccent) -> Unit = {},
     onSetGlassFrost: (Int) -> Unit = {}
 ) {
+    val isGlassTheme = LocalIsGlassTheme.current
     var isBlackDarkEnabled by remember(uiState.isBlackDarkEnabled) {
         mutableStateOf(uiState.isBlackDarkEnabled)
     }
@@ -78,6 +82,8 @@ fun ThemeSetting(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = Spacing.l)
+                .pillAvoidance()
+                .gravityItem("theme_mode_selector")
         ) {
             ThemeType.entries.forEach { theme ->
                 ThemeSettingItem(
@@ -91,7 +97,11 @@ fun ThemeSetting(
 
         SettingsGroup(
             title = null,
-            modifier = Modifier.padding(horizontal = Spacing.l)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.l)
+                .pillAvoidance()
+                .gravityItem("theme_pure_black")
         ) {
             SettingsRow(
                 title = stringResource(id = R.string.black_dark),
@@ -112,7 +122,11 @@ fun ThemeSetting(
 
         SettingsGroup(
             title = null,
-            modifier = Modifier.padding(horizontal = Spacing.l)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Spacing.l)
+                .pillAvoidance()
+                .gravityItem("theme_glass_settings")
         ) {
             SettingsRow(
                 title = stringResource(id = R.string.glass_theme),
@@ -136,8 +150,9 @@ fun ThemeSetting(
                         .padding(horizontal = Spacing.l, vertical = Spacing.m)
                 ) {
                     Text(
-                        text = stringResource(id = R.string.glass_accent),
-                        style = MaterialTheme.typography.bodyLarge,
+                        text = if (isGlassTheme) stringResource(id = R.string.glass_accent).uppercase()
+                        else stringResource(id = R.string.glass_accent),
+                        style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(Spacing.s))
@@ -153,13 +168,14 @@ fun ThemeSetting(
                                 GlassAccent.Mono -> GlassAccentMono
                             }
                             Surface(
-                                shape = AppShape.inner,
+                                shape = AppShape.chip,
                                 color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
                                 border = BorderStroke(
                                     1.dp,
                                     if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                                 ),
                                 modifier = Modifier
+                                    .clip(AppShape.chip)
                                     .clickable { onSelectGlassAccent(accent) }
                             ) {
                                 Row(
@@ -168,14 +184,14 @@ fun ThemeSetting(
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .size(12.dp)
+                                            .size(Spacing.m)
                                             .clip(CircleShape)
                                             .background(accentDotColor)
                                     )
                                     Spacer(modifier = Modifier.width(Spacing.s))
                                     Text(
-                                        text = accentName,
-                                        style = MaterialTheme.typography.labelLarge,
+                                        text = if (isGlassTheme) accentName.uppercase() else accentName,
+                                        style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.labelLarge,
                                         color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                                     )
                                 }
@@ -198,13 +214,14 @@ fun ThemeSetting(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = stringResource(id = R.string.glass_frost),
-                            style = MaterialTheme.typography.bodyLarge,
+                            text = if (isGlassTheme) stringResource(id = R.string.glass_frost).uppercase()
+                            else stringResource(id = R.string.glass_frost),
+                            style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "${uiState.glassFrost} dp",
-                            style = MaterialTheme.typography.labelLarge,
+                            style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -218,10 +235,15 @@ fun ThemeSetting(
             }
         }
 
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .pillAvoidance()
+                .gravityItem("theme_color_palette")
+        ) {
             Text(
-                text = stringResource(R.string.theme),
-                style = MaterialTheme.typography.titleSmall,
+                text = if (isGlassTheme) stringResource(R.string.theme).uppercase() else stringResource(R.string.theme),
+                style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = Spacing.l, bottom = Spacing.s)
             )

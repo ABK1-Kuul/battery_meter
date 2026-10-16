@@ -64,6 +64,7 @@ fun WidgetSettings(
     syncColorEnabled: Boolean,
     onSetNotificationEnabled: (Boolean) -> Unit,
     onSetShowPairedDevice: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     var notificationEnabled by remember(notificationSetting.batteryAlert) {
@@ -118,7 +119,8 @@ fun WidgetSettings(
     }
 
     SettingsGroup(
-        title = stringResource(id = R.string.notification_settings)
+        title = stringResource(id = R.string.notification_settings),
+        modifier = modifier
     ) {
         SettingsRow(
             title = stringResource(id = R.string.battery_alert),

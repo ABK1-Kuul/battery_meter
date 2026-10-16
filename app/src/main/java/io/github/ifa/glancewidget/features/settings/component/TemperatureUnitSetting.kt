@@ -1,12 +1,12 @@
 package io.github.ifa.glancewidget.features.settings.component
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -15,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.ifa.glancewidget.R
 import io.github.ifa.glancewidget.features.settings.SettingsViewModel
@@ -34,6 +36,8 @@ import io.github.ifa.glancewidget.ui.designsystem.components.SettingsRow
 import io.github.ifa.glancewidget.ui.designsystem.components.ThemePreviews
 import io.github.ifa.glancewidget.ui.designsystem.tokens.AppShape
 import io.github.ifa.glancewidget.ui.designsystem.tokens.Spacing
+import io.github.ifa.glancewidget.ui.glass.LocalIsGlassTheme
+import io.github.ifa.glancewidget.ui.theme.glassLabel
 import kotlinx.coroutines.launch
 
 @SuppressLint("LocalContextConfigurationRead")
@@ -47,6 +51,7 @@ fun TemperatureUnitSetting(
     val sheetState = rememberModalBottomSheetState()
     val openBottomSheet = rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val isGlassTheme = LocalIsGlassTheme.current
 
     SettingsRow(
         title = stringResource(R.string.temperature_unit),
@@ -80,51 +85,74 @@ fun TemperatureUnitSetting(
                 scope.launch { sheetState.hide() }
             },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = if (isGlassTheme) MaterialTheme.colorScheme.surfaceContainerLowest else MaterialTheme.colorScheme.surface,
         ) {
-            val units = MyDevice.Temperature.TemperatureUnit.entries
-            units.forEach { unit ->
-                val unitName = if (unit == MyDevice.Temperature.TemperatureUnit.CELSIUS) {
-                    stringResource(R.string.celsius_unit)
-                } else {
-                    stringResource(R.string.fahrenheit_unit)
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = Spacing.m)
-                        .padding(horizontal = Spacing.l)
-                        .height(56.dp)
-                        .clip(AppShape.inner)
-                        .clickable {
-                            openBottomSheet.value = false
-                            scope.launch { sheetState.hide() }
-                            onSelectTemperatureUnit(unit)
-                        }
-                        .background(
-                            MaterialTheme.colorScheme.surfaceContainerHigh,
-                            AppShape.inner
-                        )
-                        .padding(horizontal = Spacing.xl),
-                ) {
-                    Text(
-                        text = unitName,
-                        modifier = Modifier,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (unit == selectedUnit) {
-                            MaterialTheme.colorScheme.primary
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = Spacing.xl)
+            ) {
+                Text(
+                    text = if (isGlassTheme) stringResource(R.string.temperature_unit).uppercase() else stringResource(R.string.temperature_unit),
+                    style = if (isGlassTheme) MaterialTheme.typography.glassLabel else MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = Spacing.xl, vertical = Spacing.m)
+                )
+                val units = MyDevice.Temperature.TemperatureUnit.entries
+                units.forEach { unit ->
+                    val isSelected = unit == selectedUnit
+                    val unitName = if (unit == MyDevice.Temperature.TemperatureUnit.CELSIUS) {
+                        stringResource(R.string.celsius_unit)
+                    } else {
+                        stringResource(R.string.fahrenheit_unit)
+                    }
+                    Surface(
+                        shape = AppShape.card,
+                        color = if (isSelected) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else if (isGlassTheme) {
+                            MaterialTheme.colorScheme.surfaceContainerHigh
                         } else {
-                            MaterialTheme.colorScheme.secondary
+                            MaterialTheme.colorScheme.surfaceContainerLow
+                        },
+                        border = if (isSelected) {
+                            BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                        } else null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = Spacing.l, vertical = Spacing.xs)
+                            .clip(AppShape.card)
+                            .clickable {
+                                openBottomSheet.value = false
+                                scope.launch { sheetState.hide() }
+                                onSelectTemperatureUnit(unit)
+                            }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = Spacing.xl, vertical = Spacing.l)
+                        ) {
+                            Text(
+                                text = unitName,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (isSelected) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                }
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (unit == selectedUnit) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
                     }
                 }
             }

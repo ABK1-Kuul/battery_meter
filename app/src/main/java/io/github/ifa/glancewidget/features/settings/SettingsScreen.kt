@@ -160,6 +160,7 @@ fun SettingsSupportingPaneScreen(
                     SettingsPane.ThemeSettings -> {
                         ThemeSettingsScreen(
                             uiState = uiState,
+                            contentPadding = contentPadding,
                             showNavigationIcon = !widthExpanded,
                             onNavigationIconClick = {
                                 scope.launch { navigator.navigateBack(backNavigationBehavior) }
@@ -232,6 +233,7 @@ internal fun SettingsScreenLayout(
                     title = stringResource(R.string.appearance),
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = Spacing.l)
                         .pillAvoidance()
                         .gravityItem("settings_appearance")
                 ) {
@@ -267,6 +269,7 @@ internal fun SettingsScreenLayout(
                     title = stringResource(R.string.notification_settings),
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = Spacing.l)
                         .pillAvoidance()
                         .gravityItem("settings_notifications")
                 ) {
@@ -290,6 +293,7 @@ internal fun SettingsScreenLayout(
                     title = stringResource(R.string.about_tab),
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(horizontal = Spacing.l)
                         .pillAvoidance()
                         .gravityItem("settings_about")
                 ) {

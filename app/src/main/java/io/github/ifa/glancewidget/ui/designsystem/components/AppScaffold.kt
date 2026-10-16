@@ -42,6 +42,7 @@ fun AppScaffold(
     modifier: Modifier = Modifier,
     scrollBehavior: TopAppBarScrollBehavior,
     snackbarHost: @Composable () -> Unit = {},
+    navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
@@ -78,6 +79,7 @@ fun AppScaffold(
                         )
                     },
                     subtitle = {},
+                    navigationIcon = navigationIcon,
                     titleHorizontalAlignment = Alignment.CenterHorizontally,
                     scrollBehavior = scrollBehavior,
                     colors = topAppBarColors,
